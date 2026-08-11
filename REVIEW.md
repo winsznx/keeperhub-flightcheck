@@ -181,6 +181,19 @@ published as withdrawn with both measurements rather than shipped or quietly del
 
 ## 12. Security audit result
 
+Full captured run in `evidence/final-gate-run.txt`. Eight gates, all passing:
+
+```
+[1] typecheck strict                        PASS
+[2] 80 tests, no network                    80/80
+[3] contract tests                          5/5
+[4] source, pin and chain bytecode agree    PASS
+[5] 0 runtime deps, 0 vulnerabilities       PASS
+[6] 53 tracked files vs 3 live credentials  no match, incl. 8-char prefixes
+[7] git history                             no credential in any commit
+[8] fresh clone: no internal/.env/.keeperhub, runs with no npm install
+```
+
 - 0 runtime dependencies, `npm audit` clean.
 - No live credential or 8+ character prefix in any tracked file, verified programmatically.
 - No credential anywhere in git history.
