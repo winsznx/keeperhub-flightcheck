@@ -351,7 +351,7 @@ ${esc((m.bootstrap?.command as string) ?? "npm run flightcheck -- setup --execut
   ✓ Node runtime supported
   ✓ KeeperHub API reachable
   <span class="c">! KeeperHub organisation credential required</span>
-  <span class="c">  read from an interactive terminal, never echoed, never written to disk</span>
+  <span class="c">  read from an interactive terminal with echo suppressed and verified</span>
   ✓ Organisation key accepted, held in memory only
   ✓ Organisation wallet resolved
   ✓ Canonical canary bytecode verified

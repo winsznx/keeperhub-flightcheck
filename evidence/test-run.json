@@ -1,14 +1,14 @@
 {
   "command": "npm test",
-  "tests": 113,
-  "suites": 21,
-  "pass": 113,
+  "tests": 115,
+  "suites": 22,
+  "pass": 115,
   "fail": 0,
   "skipped": 0,
   "todo": 0,
-  "durationMs": 18866.5,
+  "durationMs": 18906.5,
   "network": "none required",
   "install": "none required",
   "capturedAt": "2026-08-11",
-  "note": "Unit, state-machine and bootstrap tests, runnable from a fresh clone with no npm install. Two live tests are separate and need credentials or the deployed faucet: npm run test:acceptance (response-loss recovery) and the faucet live acceptance, recorded in evidence/recovery/ and evidence/faucet/."
+  "note": "Unit, state-machine, bootstrap and real-pty tests, runnable from a fresh clone with no npm install. The pty echo test needs python3 and skips without it. Two live tests are separate: npm run test:acceptance (response-loss recovery) and the faucet live acceptance, recorded in evidence/recovery/ and evidence/faucet/."
 }

@@ -213,7 +213,7 @@ npm run flightcheck -- --resume <run-id>  # recover a run whose response was los
 npm run flightcheck -- status             # list persisted runs
 npm run --silent flightcheck -- --json    # machine-readable capsule, pipeable into jq
 npm run flightcheck -- setup --execute    # guided first run, no .env needed
-npm test                                  # 113 tests, no network required
+npm test                                  # 115 tests, no network required
 npm run evidence                          # regenerate evidence/manifest.json by hand
 ```
 
@@ -316,7 +316,7 @@ carry a comment saying so. No maintainer reviewed or rejected them.
 agent/src/       state machine, KeeperHub client, independent verifier, proof writer,
                  bootstrap, gas policy, faucet client
 faucet/          the Base Sepolia gas fallback Worker (separate service, own dependencies)
-agent/tests/     113 tests plus the live fault-injection acceptance test
+agent/tests/     115 tests plus the live fault-injection acceptance test
 contracts/       the canary, its Foundry tests, and the deploy script
 evidence/        proof capsules, the recovery log, the benchmark, the build manifest
 docs/            teardown, threat model, failure codes, how verification works

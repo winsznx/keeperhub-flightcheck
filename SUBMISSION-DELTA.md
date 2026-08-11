@@ -110,7 +110,7 @@ zero-balance wallet is the stronger demonstration.
 
 | | before | now |
 |---|---|---|
-| tests | 84 | 113 |
+| tests | 84 | 115 |
 | failure codes | 39 | 43 |
 | verified runs | 5 | 6 |
 | claim rows | 41 | 56 |
@@ -130,6 +130,29 @@ zero-balance wallet is the stronger demonstration.
 > [`0x39b1504c2f4f371bdab5451da6251b7e5fa397757882a957fb285e75f6a69ab9`](https://sepolia.basescan.org/tx/0x39b1504c2f4f371bdab5451da6251b7e5fa397757882a957fb285e75f6a69ab9)
 > Fixed payout of 0.0001 ETH to a fresh address, receipt verified independently, replay of the
 > same request id returned the original transaction rather than sending again.
+
+## 10a. Independent audit of the extension, and what it found
+
+A hostile audit was run against the extension with no KeeperHub credential, attacking the live
+faucet and the published code. It found two real holes, both fixed and re-verified before
+anything shipped. Worth mentioning in the submission because the fixes are more interesting than
+the features.
+
+**The credential prompt echoed the key.** Under a real pty on macOS with Node 24, the typed
+KeeperHub key printed in plaintext directly beneath the line promising it would not, with Node's
+own `isRaw` flag reporting true throughout. Reordering the prompt did not fix it. Echo is now
+suppressed through the terminal and the terminal's actual state is verified before a byte is read;
+if it will not confirm echo is off, the run stops rather than reading visibly. The old unit test
+could not have caught this, because it mocked the stream where the leak does not happen; the new
+test drives the real CLI under a real pty and was confirmed to fail against the old behaviour.
+
+**The faucet's rate caps were not concurrency-safe.** The counter was a read-modify-write across
+three statements, so 15 concurrent claims against a cap of 5 were all allowed and real testnet ETH
+moved past the documented limit. It is now a single atomic statement, and the same attack now
+refuses everything over the cap.
+
+Both are recorded in `CLAIMS.md` as having been false in the first release, with what changed and
+how each is verified. Full disposition in `internal/audit-report-extension.md`.
 
 ## 10. New limitations
 

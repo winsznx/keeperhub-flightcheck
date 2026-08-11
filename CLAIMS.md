@@ -64,7 +64,7 @@ The audit report is in `internal/audit-report.md`.
 | 22 | A `failed` execution whose receipts are only `not_found`/`timeout` is downgraded to UNCONFIRMED | automated | `unit.test.ts` reconcileState tests |
 | 23 | A wrong-key-type mistake is diagnosed by name before any network call | automated | `unit.test.ts` classifyKey plus the FC_ENV_WRONG_KEY_TYPE message test |
 | 24 | Wrong emitter, wrong challenge, wrong chain id and hash disagreement each fail verification | fixture | `machine.test.ts` settlement and verification suite |
-| 25 | 113 tests pass with no network access, from a fresh clone with no install | measured | `evidence/test-run.json`, regenerated from the run rather than typed |
+| 25 | 115 tests pass with no network access, from a fresh clone with no install | measured | `evidence/test-run.json`, regenerated from the run rather than typed |
 
 ## Secrets
 

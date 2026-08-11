@@ -19,6 +19,7 @@ Run started.
 | `FC_ENV_WRONG_KEY_TYPE` | That is a user key, not an organisation key | no |
 | `FC_ENV_MALFORMED_KEY` | API key is not in a recognised format | no |
 | `FC_SECRET_TTY_REQUIRED` | No private terminal to type a credential into | no |
+| `FC_SECRET_ECHO_UNSAFE` | This terminal will not suppress echo, so the key would be visible | no |
 | `FC_SECRET_CANCELLED` | Credential entry cancelled | no |
 | `FC_SECRET_IN_ARGV` | Refusing to accept a credential from the command line | no |
 | `FC_RESUME_NOT_FOUND` | No stored run with that id | no |
@@ -61,6 +62,20 @@ Run started.
 > is holding the key.
 > 
 > For CI, set KEEPERHUB_API_KEY in the environment instead.
+
+### `FC_SECRET_ECHO_UNSAFE`
+
+**This terminal will not suppress echo, so the key would be visible**
+
+> Flightcheck asked the terminal to stop echoing input and the terminal did not comply, so
+> anything typed would appear in plaintext and stay in scrollback. Nothing was read.
+> 
+> This is refused rather than risked. Set KEEPERHUB_API_KEY in the environment instead:
+> 
+>   export KEEPERHUB_API_KEY=...   # your shell, not this program
+>   npm run flightcheck -- --execute
+> 
+> If this happens in an ordinary terminal, please report it with your OS and Node version.
 
 ### `FC_SECRET_CANCELLED`
 
