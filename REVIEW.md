@@ -1,5 +1,11 @@
 # REVIEW — KeeperHub Flightcheck
 
+> **Superseded in part.** This documents the build up to 2026-08-11 14:00Z. The Flightcheck
+> Bootstrap extension (guided setup, KeeperHub-first gas policy, Base Sepolia gas fallback) came
+> after it. Current numbers, the extension's own adversarial audit, and the updated DoraHacks
+> fields are in [SUBMISSION-DELTA.md](SUBMISSION-DELTA.md). Everything below about the canonical
+> transaction, the state machine, the response-loss proof and the benchmark is unchanged.
+
 For Tim, before anything is submitted anywhere. Nothing has been submitted to DoraHacks, posted,
 or announced.
 

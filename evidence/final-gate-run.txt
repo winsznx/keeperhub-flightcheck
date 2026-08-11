@@ -1,36 +1,33 @@
-POST-EXTENSION GATE RUN  2026-08-11T17:02:42Z
+POST-AUDIT GATE RUN  2026-08-11T17:53:32Z
 ======================================================================
 [1]  root typecheck
      PASS
 [2]  faucet typecheck
      PASS
 [3]  tests
-     ℹ tests 113
-     ℹ pass 113
+     ℹ tests 115
+     ℹ pass 115
      ℹ fail 0
+     ℹ skipped 0
 [4]  contract tests
-     Suite result: ok. 5 passed; 0 failed; 0 skipped; finished in 19.75ms (25.49ms CPU time)
+     Suite result: ok. 5 passed; 0 failed; 0 skipped; finished in 16.56ms (21.20ms CPU time)
 [5]  canonical proof still verifies
      receipt 0x1  PASS
 [6]  response-loss proof intact
      2 broadcasts, 1 transaction, PASS=True
-[7]  faucet live acceptance
-     21/21 PASS=True
-[8]  faucet service live
-     enabled=True funded=True chain=84532 payout=100000000000000
-[9]  dependencies
-     CLI 0 runtime, audit found 0 vulnerabilities
-     faucet 1 runtime, audit found 0 vulnerabilities
-[10] credentials in tracked files
-     77 tracked files, 3 live credentials, 9 bare 64-hex values
-     live credential or prefix present: none
-     any value deriving the treasury address: none
+[7]  pty echo test (the one a mock cannot do)
+     ℹ pass 1
+     ℹ fail 0
+[8]  non-TTY fails closed
      PASS
-[11] git history
+[9]  argv credential refused
      PASS
-[12] withdrawn claim still absent from every public surface
+[10] deps
+     CLI 0 runtime, found 0 vulnerabilities
+     faucet 1 runtime, found 0 vulnerabilities
+[11] no live credential and nothing deriving the treasury address
+     78 files, 6 bare 64-hex: credential=none derivesTreasury=none
+[12] git history
      PASS
-[13] non-TTY without env key fails closed
-     PASS
-[14] a credential on argv is refused
+[13] false echo claim absent everywhere public
      PASS
