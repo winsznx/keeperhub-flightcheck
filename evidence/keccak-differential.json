@@ -1,0 +1,18 @@
+{
+  "artifact": "keeperhub-flightcheck/keccak-differential/v1",
+  "date": "2026-08-11",
+  "why": "agent/src/rpc.ts implements keccak256 by hand so the tool has zero runtime dependencies. That is the highest-risk code in the repository: a subtle error would make the canary bytecode pin compare against a wrong digest, and the failure would be silent. This is the differential test against an independent implementation.",
+  "reference": "foundry cast keccak (forge/cast 1.7.1)",
+  "method": "deterministic byte patterns at every length that straddles the 136-byte Keccak rate boundary and beyond, three distinct inputs per length, digests compared byte for byte",
+  "lengthsTested": [0, 1, 31, 32, 33, 63, 64, 65, 100, 134, 135, 136, 137, 138, 200, 271, 272, 273, 400, 1000],
+  "casesRun": 60,
+  "identical": 60,
+  "divergences": 0,
+  "additionalOracles": [
+    "keccak256(\"\") equals the published empty-string vector c5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470",
+    "keccak256(\"Flightcheck(address,bytes32,uint256)\") reproduces the event topic0 observed in real receipts onchain",
+    "keccak256(\"ping(bytes32)\") reproduces the 0x33d425c4 selector present in the deployed contract's calldata",
+    "hashing the runtime bytecode fetched from Base Sepolia reproduces the pin recorded before deployment"
+  ],
+  "reproduce": "node --experimental-strip-types -e 'see evidence/keccak-differential.json method' , or simply: cast code 0x2A6FC8182Bf9928Ef7517dA980dC79e8107c555A --rpc-url https://sepolia.base.org | cast keccak"
+}

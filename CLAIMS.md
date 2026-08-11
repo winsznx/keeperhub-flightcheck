@@ -72,6 +72,7 @@ Last verified: 2026-08-11.
 | 28 | Redaction catches secret shapes that were never registered | automated | `unit.test.ts` "catches secret shapes nobody registered" |
 | 29 | Values we publish on purpose are not mangled by the redactor | automated | `unit.test.ts` "does not mangle values we publish on purpose" |
 | 30 | Zero runtime dependencies | measured | `package.json` `dependencies: {}`; only `typescript` and `@types/node` as dev deps |
+| 30b | The hand-written keccak256 is byte-identical to Foundry's across 60 cases spanning every rate boundary | measured | `evidence/keccak-differential.json` |
 | 30a | `evidence/manifest.json` summarises every verified run and is regenerated automatically after each one | automated | `cli.ts` calls the manifest generator on a verified outcome; `npm run evidence` regenerates it manually |
 
 ## Findings reported about KeeperHub

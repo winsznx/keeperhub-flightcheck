@@ -63,8 +63,9 @@ else. It matters because the alternative is asking an execution layer to call wh
 to live at an address, which is the thing the tool exists to be careful about.
 
 The keccak implementation is written out rather than pulled from a package, so that a tool
-handling an API key has no runtime dependencies. It is tested against known vectors, and against
-two oracles that would catch a subtle error: it must reproduce the pinned event topic from the
+handling an API key has no runtime dependencies. It is differential-tested against Foundry's `cast keccak`, 60 cases spanning every length that
+straddles the 136-byte rate boundary, with zero divergences (`evidence/keccak-differential.json`),
+and against two oracles that would catch a subtle error: it must reproduce the pinned event topic from the
 event signature string, and the `ping(bytes32)` selector from the function signature.
 
 The pin is falsifiable. `cd contracts && forge build` on a clean checkout regenerates the same
