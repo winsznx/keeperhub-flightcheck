@@ -230,6 +230,18 @@ The short version:
 - The canonical `llms.txt` index omits the quickstart, the first-verified-transaction guide and
   the headless onboarding page, all of which return 200.
 
+## Upstream
+
+Two PRs opened against KeeperHub, both from findings below, both re-verified against the live
+site immediately before opening:
+
+- [#2005](https://github.com/KeeperHub/keeperhub/pull/2005) documents the `unconfirmed`
+  execution status, which is live but missing from the Direct Execution status list
+- [#2006](https://github.com/KeeperHub/keeperhub/pull/2006) corrects what the OpenAPI document
+  is described as covering
+
+Neither is merged, and nothing here depends on them being merged.
+
 ## Repository
 
 ```
@@ -242,5 +254,8 @@ docs/            teardown, threat model, failure codes, how verification works
 
 Claims are tracked against their evidence in [CLAIMS.md](CLAIMS.md). Nothing in this README is
 allowed to exceed that ledger.
+
+Proof page, generated from the evidence manifest:
+[keeperhub-flightcheck.timjosh507.workers.dev](https://keeperhub-flightcheck.timjosh507.workers.dev)
 
 MIT licensed.
