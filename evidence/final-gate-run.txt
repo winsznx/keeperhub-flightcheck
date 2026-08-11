@@ -1,36 +1,22 @@
-FINAL GATE RUN  2026-08-11T12:53:36Z
+FINAL GATE RUN (post-audit)  2026-08-11T13:15:21Z
 ================================================================
-
-[1] typecheck (strict, noUncheckedIndexedAccess, erasableSyntaxOnly)
-    PASS: no type errors
-
-[2] test suite, no network
-    ℹ tests 80
-    ℹ pass 80
+[1] typecheck strict
+    PASS
+[2] tests
+    ℹ tests 84
+    ℹ pass 84
     ℹ fail 0
-
 [3] contract tests
-    Suite result: ok. 5 passed; 0 failed; 0 skipped; finished in 15.02ms (18.50ms CPU time)
-
-[4] reproducible contract build
-    rebuilt  0x753157870ee9e692c7e35e0890fad801fd30fc4674a74a62a7526758da649dd0
-    pinned   0x753157870ee9e692c7e35e0890fad801fd30fc4674a74a62a7526758da649dd0
-    onchain  0x753157870ee9e692c7e35e0890fad801fd30fc4674a74a62a7526758da649dd0
-    PASS: source, pin and chain all agree
-
-[5] runtime dependencies
-    0 runtime deps; npm audit: found 0 vulnerabilities
-
-[6] secrets in tracked files
-    53 tracked files scanned against 3 live credentials
-    PASS: no credential or 8+ char prefix found
-
+    Suite result: ok. 5 passed; 0 failed; 0 skipped; finished in 16.60ms (20.88ms CPU time)
+[4] bytecode: source == pin == chain
+    PASS  0x753157870ee9e692c7e35e0890fad801fd30fc4674a74a62a7526758da649dd0
+[5] deps
+    0 runtime, found 0 vulnerabilities
+[6] credentials in tracked files
+    55 files vs 3 credentials: PASS, no match incl. prefixes
 [7] git history
-    PASS: no credential in any commit
-
-[8] published repo hygiene (fresh clone)
-    PASS: no internal
-    PASS: no .env
-    PASS: no .keeperhub
-    PASS: no node_modules
-    runs with no npm install: flightcheck 0.1.0
+    PASS
+[8] withdrawn finding not republished anywhere public
+    PASS: absent from README, site and docs
+[9] live site serves current build
+    PASS: withdrawal is live

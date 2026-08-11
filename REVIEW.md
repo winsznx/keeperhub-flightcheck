@@ -147,7 +147,7 @@ that is a clear next task and I would start from `cmd/doctor/doctor.go`.
 
 ## 9. Every public claim
 
-`CLAIMS.md` holds 39 rows, each mapped to evidence and a proof level: onchain, live-api,
+`CLAIMS.md` holds 41 rows, each mapped to evidence and a proof level: onchain, live-api,
 measured, automated, fixture, observed, or withdrawn. The README is not allowed to exceed it.
 
 One claim is struck through and marked **withdrawn**: `llms.txt` omitting the onboarding path.
@@ -187,13 +187,14 @@ Full captured run in `evidence/final-gate-run.txt`. Eight gates, all passing:
 
 ```
 [1] typecheck strict                        PASS
-[2] 80 tests, no network                    80/80
+[2] tests                                   84/84
 [3] contract tests                          5/5
-[4] source, pin and chain bytecode agree    PASS
+[4] source == pin == chain bytecode         PASS
 [5] 0 runtime deps, 0 vulnerabilities       PASS
-[6] 53 tracked files vs 3 live credentials  no match, incl. 8-char prefixes
+[6] 55 tracked files vs 3 live credentials  no match, incl. 8-char prefixes
 [7] git history                             no credential in any commit
-[8] fresh clone: no internal/.env/.keeperhub, runs with no npm install
+[8] withdrawn finding absent from README, site and docs
+[9] live site serves the corrected build
 ```
 
 - 0 runtime dependencies, `npm audit` clean.
@@ -207,8 +208,8 @@ Full captured run in `evidence/final-gate-run.txt`. Eight gates, all passing:
 
 ## 13. Diff statistics
 
-51 tracked files. 4,739 lines of TypeScript, 150 of Solidity, 2,234 of documentation, 15
-evidence files. 80 tests, all passing, no network required, from a clean clone with no
+55 tracked files. 5,000-odd lines of TypeScript, 150 of Solidity, 2,234 of documentation, 15
+evidence files. 84 tests, all passing, no network required, from a clean clone with no
 `npm install`.
 
 ## 14. DoraHacks submission draft
