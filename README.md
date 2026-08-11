@@ -257,9 +257,9 @@ The teardown records both measurements rather than dropping it.
 Two PRs opened against KeeperHub, both from findings below, both re-verified against the live
 site immediately before opening:
 
-- [#2005](https://github.com/KeeperHub/keeperhub/pull/2005) documents the `unconfirmed`
+- [#2008](https://github.com/KeeperHub/keeperhub/pull/2008) documents the `unconfirmed`
   execution status, which is live but missing from the Direct Execution status list
-- [#2006](https://github.com/KeeperHub/keeperhub/pull/2006) corrects what the OpenAPI document
+- [#2009](https://github.com/KeeperHub/keeperhub/pull/2009) corrects what the OpenAPI document
   is described as covering
 
 Neither is merged, and nothing here depends on them being merged.

@@ -90,7 +90,7 @@ Each of these is stated in the teardown at the level below and nowhere stronger.
 | 34 | A simulation passed while the resolved sender held zero native balance | live-api + onchain | simulation response plus `cast balance` at the same time |
 | 35 | ~~`llms.txt` omits the onboarding pages~~ WITHDRAWN. True on 2026-08-10, fixed upstream by 2026-08-11 and re-verified before publication | withdrawn | teardown item 6 records both measurements |
 | 36 | `/api/openapi` contains no core REST path and no bearer security scheme, while being advertised as the REST schema | live-api | reproduction in the teardown, re-verified 2026-08-11: 117 paths, all workflow calls |
-| 38 | Two upstream PRs opened against KeeperHub/keeperhub | verifiable | [#2005](https://github.com/KeeperHub/keeperhub/pull/2005) unconfirmed status, [#2006](https://github.com/KeeperHub/keeperhub/pull/2006) OpenAPI description |
+| 38 | Two upstream PRs opened against KeeperHub/keeperhub | verifiable | [#2008](https://github.com/KeeperHub/keeperhub/pull/2008) unconfirmed status, [#2009](https://github.com/KeeperHub/keeperhub/pull/2009) OpenAPI description |
 | 37 | The org wallet's explorer view shows nothing for a sponsored execution | onchain | `receipt.from` is a relayer; org wallet balance was 0 throughout |
 
 ## Deliberately not claimed
