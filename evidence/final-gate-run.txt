@@ -1,33 +1,21 @@
-POST-AUDIT GATE RUN  2026-08-11T17:53:32Z
-======================================================================
-[1]  root typecheck
-     PASS
-[2]  faucet typecheck
-     PASS
-[3]  tests
-     ℹ tests 115
-     ℹ pass 115
-     ℹ fail 0
-     ℹ skipped 0
-[4]  contract tests
-     Suite result: ok. 5 passed; 0 failed; 0 skipped; finished in 16.56ms (21.20ms CPU time)
-[5]  canonical proof still verifies
-     receipt 0x1  PASS
-[6]  response-loss proof intact
-     2 broadcasts, 1 transaction, PASS=True
-[7]  pty echo test (the one a mock cannot do)
-     ℹ pass 1
-     ℹ fail 0
-[8]  non-TTY fails closed
-     PASS
-[9]  argv credential refused
-     PASS
-[10] deps
-     CLI 0 runtime, found 0 vulnerabilities
-     faucet 1 runtime, found 0 vulnerabilities
-[11] no live credential and nothing deriving the treasury address
-     78 files, 6 bare 64-hex: credential=none derivesTreasury=none
-[12] git history
-     PASS
-[13] false echo claim absent everywhere public
-     PASS
+[1] typechecks
+    both PASS
+[2] tests
+    ℹ tests 115
+    ℹ pass 115
+    ℹ fail 0
+[3] contracts
+    Suite result: ok. 5 passed; 0 failed; 0 skipped; finished in 16.08ms (18.90ms CPU time)
+[4] canonical KeeperHub transaction
+    status 0x1 block 45339897
+[5] response-loss proof
+    2 broadcasts, 1 transaction, PASS=True
+[6] faucet live acceptance
+    24/24 PASS=True
+[7] faucet service
+    enabled=True chain=84532 treasury=1998998258938971149 wei
+[8] proof site
+    http 200
+[9] upstream PRs
+    #2009 open  docs(llms): describe what the OpenAPI spec actually covers
+    #2008 open  docs(api): document the unconfirmed execution status
