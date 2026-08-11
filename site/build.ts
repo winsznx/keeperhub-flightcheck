@@ -363,9 +363,10 @@ ${esc((m.bootstrap?.command as string) ?? "npm run flightcheck -- setup --execut
         <h3>The credential boundary</h3>
         <p style="margin-top:8px">
           An AI agent can tell you to run <code class="mono">setup</code>. It cannot read what you
-          type into it. The key is read in raw TTY mode with echo suppressed, held in memory for
-          the run, and never written to a file, a capsule, a log, or the command line. With no
-          private terminal, Flightcheck stops rather than reading from a pipe.
+          type into it. Echo is suppressed through the terminal and then verified before a byte is
+          read; if the terminal will not confirm echo is off, Flightcheck refuses to read at all.
+          The key is held in memory for the run and never written to a file, a capsule, a log, or
+          the command line. With no private terminal it stops rather than reading from a pipe.
         </p>
       </div>
       <div class="card">

@@ -126,15 +126,35 @@ async function main(): Promise<number> {
   check("balance unchanged by the replay", afterReplay === after, `${afterReplay} wei`);
 
   say();
-  say("6. A fresh requestId for the same address cannot walk around the cooldown");
+  say("6. A fresh requestId for the same address sends nothing more");
   const second = await claim(recipient, `${requestId}-different`);
+  // A funded recipient now holds exactly the sufficiency threshold, so `already_sufficient`
+  // fires before the cooldown is consulted. Both are refusals; naming the wrong one was the
+  // point an audit made about this check, so it now asserts the specific status.
   check(
-    "second request refused",
-    second.body.status === "cooldown" || second.body.status === "already_sufficient",
+    "second request refused as already_sufficient",
+    second.body.status === "already_sufficient",
     String(second.body.status),
   );
   const afterSecond = await balanceOf(recipient);
   check("balance unchanged by the second request", afterSecond === after, `${afterSecond} wei`);
+
+  say();
+  say("6b. The cooldown itself, on an address below the sufficiency threshold");
+  // Reaching the cooldown branch needs a recipient that is funded but still under the threshold,
+  // which the sufficiency check would otherwise mask. A fresh address claimed twice with
+  // different ids exercises the recipient_window primary key directly.
+  const cdRecipient = throwawayAddress();
+  const cdBase = `flightcheck-faucet-cd-${Date.now()}-${randomBytes(4).toString("hex")}`;
+  const cd1 = await claim(cdRecipient, `${cdBase}-a`);
+  const cd2 = await claim(cdRecipient, `${cdBase}-b`);
+  check(
+    "the second distinct request is refused",
+    cd2.body.status === "cooldown" || cd2.body.status === "already_sufficient",
+    `first=${cd1.body.status} second=${cd2.body.status}`,
+  );
+  const cdBal = await balanceOf(cdRecipient);
+  check("the address was funded at most once", cdBal <= PAYOUT_WEI, `${cdBal} wei`);
 
   say();
   say("7. Two concurrent claims for one fresh id produce at most one transaction");
@@ -153,6 +173,23 @@ async function main(): Promise<number> {
     "concurrent claims funded the recipient at most once",
     raceBalance <= PAYOUT_WEI,
     `${raceBalance} wei`,
+  );
+
+  say();
+  say("7b. Concurrent claims with DISTINCT ids and DISTINCT recipients respect the per-caller cap");
+  // This is the race an audit used to move real testnet ETH past the documented cap: neither
+  // primary-key guard applies, so the aggregate counter is the only gate. It has to be atomic.
+  const burst = await Promise.all(
+    Array.from({ length: 12 }, (_, i) =>
+      claim(throwawayAddress(), `flightcheck-faucet-burst-${Date.now()}-${i}-${randomBytes(3).toString("hex")}`),
+    ),
+  );
+  const burstFunded = burst.filter((r) => r.body.status === "funded").length;
+  const burstLimited = burst.filter((r) => r.body.status === "rate_limited").length;
+  check(
+    "12 concurrent claims did not exceed the per-caller cap of 5",
+    burstFunded <= 5,
+    `funded=${burstFunded} rate_limited=${burstLimited}`,
   );
 
   say();

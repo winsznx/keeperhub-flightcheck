@@ -63,10 +63,17 @@ told they cannot, not silently given the default.
 
 ### Concurrency
 
-Two simultaneous valid requests produce at most one transaction. This is not a read-then-write
-check, which is exactly how a faucet double-sends under load. Both the request-id replay guard and
-the per-recipient cooldown are primary-key inserts in D1, so the database resolves the race and
-the reservation is taken **before** anything is signed.
+Two simultaneous valid requests for the same recipient or the same request id produce at most one
+transaction. Both guards are primary-key inserts in D1, so the database resolves the race and the
+reservation is taken **before** anything is signed.
+
+The aggregate caps needed the same treatment and did not originally get it. An audit fired 15
+concurrent claims from one caller against a cap of 5, using distinct addresses and distinct
+request ids so neither primary-key guard applied, and none were refused: the counter was a
+read-modify-write across three statements and lost updates. It is now a single
+`INSERT ... ON CONFLICT DO UPDATE ... RETURNING`, so concurrent callers serialise on the row. The
+same attack now refuses every request over the cap, and the counter records all 15 attempts where
+it previously recorded about three.
 
 A send that fails stays failed under that request id. Freeing the row for retry would let a caller
 re-drive an id whose transaction may in fact have reached the network. The recipient's cooldown

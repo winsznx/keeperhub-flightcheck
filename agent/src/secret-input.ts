@@ -13,8 +13,65 @@
  * A piped or agent-driven stdin is exactly the case where a key would leak, so it is refused.
  */
 
+import { execFileSync } from "node:child_process";
 import { FlightcheckError } from "./errors.ts";
 import { registerSecret } from "./redact.ts";
+
+
+/**
+ * Ask the terminal to stop echoing, then ask it whether it did.
+ *
+ * `stty -a` prints the flag as the bare word `echo` when echo is on and `-echo` when it is off,
+ * alongside unrelated neighbours like `echoe` and `echoctl`, so the token is matched exactly
+ * rather than by substring. Returning false here means the caller must refuse to read.
+ */
+function disableEcho(): boolean {
+  try {
+    execFileSync("stty", ["-echo"], { stdio: ["inherit", "ignore", "ignore"] });
+  } catch {
+    return false;
+  }
+  return echoIsOff();
+}
+
+function echoIsOff(): boolean {
+  try {
+    const state = execFileSync("stty", ["-a"], {
+      stdio: ["inherit", "pipe", "ignore"],
+      encoding: "utf8",
+    });
+    const tokens = state.split(/[\s;]+/);
+    if (tokens.includes("-echo")) return true;
+    if (tokens.includes("echo")) return false;
+    // A terminal that reports neither is one we cannot make a claim about.
+    return false;
+  } catch {
+    return false;
+  }
+}
+
+function restoreEcho(): void {
+  try {
+    execFileSync("stty", ["echo"], { stdio: ["inherit", "ignore", "ignore"] });
+  } catch {
+    // Best effort. The process is exiting or the terminal is gone.
+  }
+}
+
+/**
+ * How echo is suppressed and verified.
+ *
+ * Injectable so a unit test can drive the read loop without a real terminal. Production always
+ * uses the `stty` implementation above, and the property that actually matters is proved by a
+ * pty test that runs the real CLI, because a mock stream cannot reproduce a terminal's own line
+ * discipline echoing input. That gap is precisely what an audit found.
+ */
+export interface EchoControl {
+  disable(): boolean;
+  restore(): void;
+}
+
+const TERMINAL_ECHO: EchoControl = { disable: disableEcho, restore: restoreEcho };
 
 export interface PromptOptions {
   readonly label: string;
@@ -22,6 +79,7 @@ export interface PromptOptions {
   /** Injected in tests. Production always uses the real TTY. */
   readonly stdin?: NodeJS.ReadStream;
   readonly stdout?: NodeJS.WriteStream;
+  readonly echo?: EchoControl;
 }
 
 /**
@@ -50,6 +108,8 @@ export function promptSecret(opts: PromptOptions): Promise<string> {
     return Promise.reject(new FlightcheckError("FC_SECRET_TTY_REQUIRED"));
   }
 
+  const echo = opts.echo ?? TERMINAL_ECHO;
+
   return new Promise<string>((resolve, reject) => {
     let buffer = "";
     const wasRaw = stdin.isRaw === true;
@@ -61,6 +121,7 @@ export function promptSecret(opts: PromptOptions): Promise<string> {
       } catch {
         // Restoring the mode is best effort; failing to must not mask the original outcome.
       }
+      echo.restore();
       stdin.pause();
     };
 
@@ -97,13 +158,40 @@ export function promptSecret(opts: PromptOptions): Promise<string> {
       }
     };
 
-    stdout.write(opts.label);
+    /*
+     * Suppress echo, then verify the terminal actually did it, before reading a single byte.
+     *
+     * `setRawMode(true)` alone is not enough and its own `isRaw` flag cannot be trusted. An
+     * external audit drove this under a real pty on macOS with Node 24 and watched the key
+     * print in plaintext directly beneath the line promising it would not, with `isRaw`
+     * reporting true the whole time. Reordering the prompt did not fix it either.
+     *
+     * So the terminal is asked directly, through `stty`, and then asked again what state it is
+     * actually in. Echo suppression is the entire security property of this function, so it is
+     * measured rather than assumed. If the terminal will not confirm that echo is off, this
+     * refuses to read at all: failing closed costs a user one error message, failing open costs
+     * them their key.
+     */
+    if (!echo.disable()) {
+      echo.restore();
+      try {
+        stdin.setRawMode(wasRaw);
+      } catch {
+        /* nothing further to restore */
+      }
+      reject(new FlightcheckError("FC_SECRET_ECHO_UNSAFE"));
+      return;
+    }
+
     try {
       stdin.setRawMode(true);
     } catch {
+      echo.restore();
       reject(new FlightcheckError("FC_SECRET_TTY_REQUIRED"));
       return;
     }
+
+    stdout.write(opts.label);
     stdin.resume();
     stdin.on("data", onData);
   });
@@ -121,6 +209,7 @@ export async function acquireKeeperHubKey(opts: {
   interactive: boolean;
   stdin?: NodeJS.ReadStream;
   stdout?: NodeJS.WriteStream;
+  echo?: EchoControl;
   onNote?: (text: string) => void;
 }): Promise<{ key: string; source: "environment" | "interactive" }> {
   const fromEnv = opts.envValue?.trim();
@@ -138,6 +227,7 @@ export async function acquireKeeperHubKey(opts: {
       label: "  KeeperHub organisation key: ",
       stdin: opts.stdin,
       stdout: opts.stdout,
+      ...(opts.echo ? { echo: opts.echo } : {}),
     })
   ).trim();
 

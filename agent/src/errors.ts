@@ -63,6 +63,7 @@ export type FailureCode =
   // bootstrap and gas fallback
   | "FC_SECRET_TTY_REQUIRED"
   | "FC_SECRET_CANCELLED"
+  | "FC_SECRET_ECHO_UNSAFE"
   | "FC_SECRET_IN_ARGV"
   | "FC_FAUCET_UNAVAILABLE"
   // resume
@@ -390,6 +391,18 @@ export const FAILURES: Record<FailureCode, FailureSpec> = {
       "Argv is visible to every process on the machine, and a pipe means something other than you\n" +
       "is holding the key.\n\n" +
       "For CI, set KEEPERHUB_API_KEY in the environment instead.",
+  },
+  FC_SECRET_ECHO_UNSAFE: {
+    stage: "START",
+    title: "This terminal will not suppress echo, so the key would be visible",
+    broadcastPossible: false,
+    remediation: () =>
+      "Flightcheck asked the terminal to stop echoing input and the terminal did not comply, so\n" +
+      "anything typed would appear in plaintext and stay in scrollback. Nothing was read.\n\n" +
+      "This is refused rather than risked. Set KEEPERHUB_API_KEY in the environment instead:\n\n" +
+      "  export KEEPERHUB_API_KEY=...   # your shell, not this program\n" +
+      "  npm run flightcheck -- --execute\n\n" +
+      "If this happens in an ordinary terminal, please report it with your OS and Node version.",
   },
   FC_SECRET_CANCELLED: {
     stage: "START",

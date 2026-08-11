@@ -16,7 +16,12 @@ import { PassThrough } from "node:stream";
 
 import { evaluateFaucetEligibility, mayStartNewLogicalRun, faucetRequestId } from "../src/gaspolicy.ts";
 import { buildRequestBody, FaucetClient, describeFaucetResult, FAUCET_PAYOUT_WEI } from "../src/faucet-client.ts";
-import { assertNoSecretInArgv, hasInteractiveTty, acquireKeeperHubKey } from "../src/secret-input.ts";
+import { assertNoSecretInArgv, hasInteractiveTty, acquireKeeperHubKey, type EchoControl } from "../src/secret-input.ts";
+
+/** A terminal that confirms echo is off. The real one is exercised by the pty test. */
+const ECHO_OK: EchoControl = { disable: () => true, restore: () => {} };
+/** A terminal that will not suppress echo. */
+const ECHO_REFUSES: EchoControl = { disable: () => false, restore: () => {} };
 import { FlightcheckError } from "../src/errors.ts";
 import { registerSecret, clearSecrets, findLeaks } from "../src/redact.ts";
 import { BASE_SEPOLIA } from "../src/config.ts";
@@ -331,7 +336,7 @@ describe("credential boundary", () => {
     }) as unknown as NodeJS.ReadStream;
     const stdout = new PassThrough() as unknown as NodeJS.WriteStream;
 
-    const promise = acquireKeeperHubKey({ interactive: true, stdin, stdout });
+    const promise = acquireKeeperHubKey({ interactive: true, stdin, stdout, echo: ECHO_OK });
     setTimeout(() => (stdin as unknown as PassThrough).write("kh_TYPED_SECRET_abcdefgh\r"), 10);
     const got = await promise;
 
@@ -341,7 +346,16 @@ describe("credential boundary", () => {
     clearSecrets();
   });
 
-  test("the hidden prompt echoes nothing", async () => {
+  test("a terminal that will not suppress echo is refused rather than read from", async () => {
+    // The fail-closed half of the audit fix. If the terminal declines, nothing is read at all.
+    const stdin = Object.assign(new PassThrough(), { isTTY: true, setRawMode() {}, isRaw: false }) as unknown as NodeJS.ReadStream;
+    await assert.rejects(
+      () => acquireKeeperHubKey({ interactive: true, stdin, stdout: new PassThrough() as unknown as NodeJS.WriteStream, echo: ECHO_REFUSES }),
+      (e: FlightcheckError) => e.code === "FC_SECRET_ECHO_UNSAFE",
+    );
+  });
+
+  test("the prompt writes no typed character itself", async () => {
     clearSecrets();
     const stdin = Object.assign(new PassThrough(), { isTTY: true, setRawMode() {}, isRaw: false }) as unknown as NodeJS.ReadStream;
     const out = new PassThrough();
@@ -352,6 +366,7 @@ describe("credential boundary", () => {
       interactive: true,
       stdin,
       stdout: out as unknown as NodeJS.WriteStream,
+      echo: ECHO_OK,
     });
     setTimeout(() => (stdin as unknown as PassThrough).write("kh_NEVER_ECHOED_abcdefgh\r"), 10);
     await promise;

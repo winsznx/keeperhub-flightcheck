@@ -17,9 +17,18 @@ you ──types──> Flightcheck process ──Authorization header──> Kee
                       └── never: .env, run state, proof capsule, logs, argv, the faucet
 ```
 
-The key is read in raw TTY mode with echo suppressed, so not a single character reaches the
-terminal and a paste never lands in scrollback. It is held in one string for the process lifetime
-and disappears when the process exits.
+Echo is suppressed through the terminal itself, and then the terminal is asked what state it is
+actually in before a single byte is read. If it will not confirm that echo is off, Flightcheck
+refuses to read at all and tells you to use the environment variable instead.
+
+That verification is not paranoia. The first release of this feature relied on Node's
+`setRawMode` and its `isRaw` flag, and an external audit drove the real CLI under a kernel pty on
+macOS with Node 24 and watched the key print in plaintext directly beneath the line promising it
+would not, with `isRaw` reporting true throughout. Suppressing echo is the entire security
+property here, so it is now measured rather than assumed, and failing closed costs one error
+message where failing open costs a key.
+
+The key is held in one string for the process lifetime and disappears when the process exits.
 
 It is registered with the redactor the instant it is read, before any request, so even a crash
 between reading it and using it cannot print it through an error path.

@@ -97,7 +97,8 @@ Each of these is stated in the teardown at the level below and nowhere stronger.
 
 | # | Claim | Level | Evidence |
 |---|---|---|---|
-| 39 | The interactive key prompt echoes nothing | automated | `bootstrap.test.ts` "the hidden prompt echoes nothing" captures the output stream and asserts the key is absent |
+| 39 | The interactive key prompt echoes nothing | live pty | **This claim was false in the first release of the extension.** An external audit drove the real CLI under a kernel pty on macOS with Node 24 and the key printed in plaintext. Echo is now suppressed with `stty` and the terminal's actual state is verified before a byte is read; re-tested under the same pty harness, no echo. `agent/tests/pty-echo.test.ts` |
+| 39a | If the terminal will not confirm echo is off, Flightcheck refuses to read rather than reading visibly | automated | `FC_SECRET_ECHO_UNSAFE`; `bootstrap.test.ts` "a terminal that will not suppress echo is refused rather than read from" |
 | 40 | An interactively supplied key is never written to `.env`, run state, a capsule or a log | automated | it exists only as a local in `runBootstrap`; the capsule redaction test covers the output side |
 | 41 | A credential on the command line is refused | automated | `bootstrap.test.ts` covers `--key`, `--api-key=`, a bare `kh_` and a bare `wfb_` argument |
 | 42 | With no TTY and no environment key, Flightcheck fails closed rather than reading a pipe | automated + live | `FC_SECRET_TTY_REQUIRED`; reproduced live with `< /dev/null` |
@@ -107,10 +108,11 @@ Each of these is stated in the teardown at the level below and nowhere stronger.
 | 46 | An ambiguous or possibly-broadcast failure never triggers the faucet | automated | 11 refusal cases in `bootstrap.test.ts`, including transport loss, unconfirmed, and an existing execution id |
 | 47 | A new idempotency key is only minted after a proven pre-broadcast failure | automated | `mayStartNewLogicalRun` tests |
 | 48 | The faucet is Base Sepolia only and takes no caller-selected chain or amount | live | live acceptance rejects `amountWei` and `chainId` with `invalid_request` |
-| 49 | The faucet sends exactly one transaction per logical claim | live | live acceptance: replay returns the original hash, balance unchanged, concurrent claims produce one distinct hash |
+| 49 | The faucet sends exactly one transaction per logical claim, keyed on recipient and request id | live | live acceptance: replay returns the original hash, balance unchanged, concurrent claims produce one distinct hash |
 | 50 | A live faucet transfer was executed and independently verified | onchain | [`0x39b1504c2f4f371bdab5451da6251b7e5fa397757882a957fb285e75f6a69ab9`](https://sepolia.basescan.org/tx/0x39b1504c2f4f371bdab5451da6251b7e5fa397757882a957fb285e75f6a69ab9), receipt status `0x1`, recipient balance increased by exactly the fixed payout |
 | 51 | 21/21 live faucet acceptance checks pass against the deployed service and real Base Sepolia | live | `evidence/faucet/live-acceptance.json` |
 | 52 | The treasury private key never entered the repository, git history, or any model-visible output | measured | generated locally, piped to `wrangler secret put` over stdin; the published address was read back from the Worker, which derives it from the secret |
+| 49a | The faucet's per-caller and global caps are enforced atomically | live | **Not true in the first release.** An audit fired 15 concurrent claims against a cap of 5 and none were refused, because the counter was a read-modify-write across three statements. It is now a single `INSERT ... ON CONFLICT DO UPDATE ... RETURNING`. Re-tested with the same 15-concurrent attack: all refused, and the counter recorded all 15 where it previously recorded about 3 |
 | 53 | The Flightcheck CLI has zero runtime dependencies. The faucet Worker has one, `viem` | measured | root `package.json` empty `dependencies`; `faucet/package.json` has `viem` only, `npm audit` clean on both |
 
 ## Deliberately not claimed

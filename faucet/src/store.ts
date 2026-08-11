@@ -118,7 +118,24 @@ export class Store {
       .run();
   }
 
-  /** Increment a window counter and report whether it is now over the limit. */
+  /**
+   * Increment a window counter atomically and report whether it is now over the limit.
+   *
+   * One statement, and it must stay one statement.
+   *
+   * This was originally three: insert-or-reset, select, then update to an absolute value. Under
+   * concurrency that loses updates, because every racing request reads the same count and writes
+   * back the same increment. An external audit fired 15 simultaneous requests from one address
+   * against a limit of 5, saw zero refusals, and moved real testnet ETH past the documented cap.
+   * The per-recipient and per-request-id guards held, because those are primary-key inserts; this
+   * counter was the only gate on distinct addresses with distinct request ids, and it was the
+   * one that was not atomic.
+   *
+   * The increment happens inside the write and `RETURNING` reports the post-increment state, so
+   * concurrent callers serialise on the row rather than on a read the database has already
+   * forgotten. A refused request still consumes its slot, which is the correct direction to err:
+   * an attacker probing the limit pays for the probe.
+   */
   async bumpAndCheck(
     bucket: string,
     now: number,
@@ -128,35 +145,34 @@ export class Store {
     maxWei: bigint | null,
   ): Promise<{ allowed: boolean; count: number }> {
     const windowStart = Math.floor(now / windowMs) * windowMs;
-    await this.db
-      .prepare(
-        `INSERT INTO rate_buckets (bucket, count, wei_total, window_start)
-         VALUES (?, 0, '0', ?)
-         ON CONFLICT(bucket) DO UPDATE SET
-           count = CASE WHEN rate_buckets.window_start < ? THEN 0 ELSE rate_buckets.count END,
-           wei_total = CASE WHEN rate_buckets.window_start < ? THEN '0' ELSE rate_buckets.wei_total END,
-           window_start = CASE WHEN rate_buckets.window_start < ? THEN ? ELSE rate_buckets.window_start END`,
-      )
-      .bind(bucket, windowStart, windowStart, windowStart, windowStart, windowStart)
-      .run();
 
     const row = await this.db
-      .prepare("SELECT count, wei_total FROM rate_buckets WHERE bucket = ?")
-      .bind(bucket)
+      .prepare(
+        `INSERT INTO rate_buckets (bucket, count, wei_total, window_start)
+         VALUES (?1, 1, ?2, ?3)
+         ON CONFLICT(bucket) DO UPDATE SET
+           count = CASE WHEN rate_buckets.window_start < ?3 THEN 1
+                        ELSE rate_buckets.count + 1 END,
+           wei_total = CASE WHEN rate_buckets.window_start < ?3 THEN ?2
+                            ELSE CAST(CAST(rate_buckets.wei_total AS INTEGER) + CAST(?2 AS INTEGER) AS TEXT) END,
+           window_start = CASE WHEN rate_buckets.window_start < ?3 THEN ?3
+                               ELSE rate_buckets.window_start END
+         RETURNING count, wei_total`,
+      )
+      .bind(bucket, weiToAdd.toString(), windowStart)
       .first<{ count: number; wei_total: string }>();
 
-    const count = (row?.count ?? 0) + 1;
-    const weiTotal = BigInt(row?.wei_total ?? "0") + weiToAdd;
-
-    if (count > maxCount || (maxWei !== null && weiTotal > maxWei)) {
-      return { allowed: false, count };
+    const count = row?.count ?? maxCount + 1;
+    let weiTotal: bigint;
+    try {
+      weiTotal = BigInt(row?.wei_total ?? "0");
+    } catch {
+      // An unreadable total is treated as over budget rather than as zero.
+      weiTotal = maxWei ?? 0n;
     }
 
-    await this.db
-      .prepare("UPDATE rate_buckets SET count = ?, wei_total = ? WHERE bucket = ?")
-      .bind(count, weiTotal.toString(), bucket)
-      .run();
-    return { allowed: true, count };
+    const allowed = count <= maxCount && (maxWei === null || weiTotal <= maxWei);
+    return { allowed, count };
   }
 
   async stats(now: number): Promise<{ claimsToday: number; weiToday: string }> {
