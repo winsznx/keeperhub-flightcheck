@@ -53,18 +53,50 @@ table above.
 
 ## Run it yourself
 
-Needs Node 22.18+ (for native TypeScript execution) and a KeeperHub organisation API key.
-There is no `npm install` step, because Flightcheck has zero runtime dependencies.
+Needs Node 22.18+ and a KeeperHub organisation API key. No `npm install`, because the CLI has
+zero runtime dependencies. No `.env` to create either.
 
 ```bash
 git clone https://github.com/winsznx/keeperhub-flightcheck && cd keeperhub-flightcheck
-cp .env.example .env       # then put your kh_ key in it
-npm run flightcheck        # preflight only, broadcasts nothing
-npm run flightcheck -- --execute
+npm run flightcheck -- setup --execute
 ```
+
+`setup` asks for your KeeperHub organisation key through a hidden terminal prompt. The key is
+used in memory for that run and is never written to `.env`, run state, a proof capsule, a log, or
+the command line. It is not accepted as an argument, and if there is no private TTY to type it
+into, Flightcheck stops rather than reading from a pipe.
+
+That boundary is the point: an AI agent can tell you to run `setup`, but it cannot read what you
+type into it.
 
 You do not deploy a contract. The canary is already live and its bytecode hash is pinned in
 [`agent/src/config.ts`](agent/src/config.ts).
+
+<details>
+<summary>Advanced and CI setup</summary>
+
+Set `KEEPERHUB_API_KEY` in the environment, or copy `.env.example` to `.env` and fill it in, then
+use the direct commands:
+
+```bash
+npm run flightcheck                # preflight only, broadcasts nothing
+npm run flightcheck -- --execute
+```
+
+The environment path is unchanged and takes precedence over the prompt.
+</details>
+
+### If gas is genuinely the blocker
+
+KeeperHub is always tried first. On our organisation the canonical transaction was executed from
+a wallet holding **zero ETH**, because the write was sponsored, so a zero balance is not a reason
+to fund anything.
+
+If KeeperHub does return a conclusive insufficient-balance condition *before any broadcast*,
+`setup` offers a fixed 0.0001 ETH Base Sepolia top-up from a small treasury, then retries. If the
+failure is ambiguous in any way, meaning a transaction might already exist, it refuses to fund and
+tells you to resume instead. Details in [docs/bootstrap.md](docs/bootstrap.md) and
+[docs/faucet.md](docs/faucet.md).
 
 ## What this proves that `kh doctor` does not
 
@@ -180,6 +212,7 @@ npm run flightcheck -- --execute          # one zero-value call to the pinned ca
 npm run flightcheck -- --resume <run-id>  # recover a run whose response was lost
 npm run flightcheck -- status             # list persisted runs
 npm run --silent flightcheck -- --json    # machine-readable capsule, pipeable into jq
+npm run flightcheck -- setup --execute    # guided first run, no .env needed
 npm test                                  # 84 tests, no network required
 npm run evidence                          # regenerate evidence/manifest.json by hand
 ```
@@ -211,7 +244,8 @@ Or skip the build entirely and compare the deployed code against the pin:
 cast code 0x2A6FC8182Bf9928Ef7517dA980dC79e8107c555A --rpc-url https://sepolia.base.org | cast keccak
 ```
 
-Secrets: the API key is never printed, logged, or written to any capsule. Output passes through a
+Secrets: the API key is never printed, logged, written to any capsule, accepted on the command
+line, or sent to the faucet. Output passes through a
 redactor that scrubs both registered values and secret-shaped patterns, and the test suite fails
 the build if either appears. See [docs/threat-model.md](docs/threat-model.md).
 
@@ -230,7 +264,13 @@ These are real and they sit here rather than in a footnote.
   only when `sponsored` is true, because that is the path we measured. The non-sponsored path is
   unmeasured and the capsule records it as `recorded-not-asserted`.
 - **One canary, one chain.** Extending to another chain means deploying and pinning another
-  canary.
+  canary, and another faucet treasury.
+- **The gas fallback is fixture-tested at the KeeperHub end.** The faucet itself is live-tested
+  end to end, but the KeeperHub `insufficient_balance` condition that triggers it is driven from a
+  captured response shape. Our organisation is sponsored, and engineering an unsafe execution
+  failure to demonstrate a fallback would be the wrong trade.
+- **The faucet is not production infrastructure.** It is a hackathon fallback with a kill switch,
+  and its abuse controls raise the cost of misuse rather than making it impossible.
 
 ## What we found in KeeperHub along the way
 
@@ -273,7 +313,9 @@ carry a comment saying so. No maintainer reviewed or rejected them.
 ## Repository
 
 ```
-agent/src/       state machine, KeeperHub client, independent verifier, proof writer
+agent/src/       state machine, KeeperHub client, independent verifier, proof writer,
+                 bootstrap, gas policy, faucet client
+faucet/          the Base Sepolia gas fallback Worker (separate service, own dependencies)
 agent/tests/     84 tests plus the live fault-injection acceptance test
 contracts/       the canary, its Foundry tests, and the deploy script
 evidence/        proof capsules, the recovery log, the benchmark, the build manifest

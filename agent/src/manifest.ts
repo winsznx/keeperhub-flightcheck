@@ -152,6 +152,20 @@ function main(): void {
 
     benchmark: benchmark ?? null,
 
+    bootstrap: {
+      command: "npm run flightcheck -- setup --execute",
+      requiresEnvFile: false,
+      credentialSource: "hidden interactive TTY prompt, or KEEPERHUB_API_KEY for CI",
+      credentialPersisted: false,
+      credentialAcceptedOnArgv: false,
+      failsClosedWithoutTty: true,
+      gasPolicy: "KeeperHub first. A zero balance never triggers funding on its own.",
+    },
+
+    faucet: readJson<Record<string, unknown>>(
+      resolve(REPO_ROOT, "evidence", "faucet", "live-acceptance.json"),
+    ),
+
     stateMachine: STAGES.map((s) => ({
       stage: s,
       label: STAGE_LABEL[s],

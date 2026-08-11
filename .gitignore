@@ -25,3 +25,6 @@ contracts/lib/
 
 # OS
 .DS_Store
+
+# Wrangler local state
+.wrangler/

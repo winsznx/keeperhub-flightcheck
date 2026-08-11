@@ -1,0 +1,30 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "keeperhub-flightcheck-faucet",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-08-01",
+  "compatibility_flags": ["nodejs_compat"],
+
+  // Claim reservation needs a real atomic write. D1's primary-key insert gives that; KV's
+  // eventual consistency does not, and a faucet that loses a read-then-write race sends twice.
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "flightcheck-faucet",
+      "database_id": "e5f283c3-9645-4033-9d35-e803629fcbae"
+    }
+  ],
+
+  "vars": {
+    // Emergency kill switch. Set to "false" with `wrangler deploy` or the dashboard to stop
+    // all payouts without tearing anything down.
+    "FAUCET_ENABLED": "true"
+  },
+
+  // Secrets, set with `wrangler secret put`, never in this file:
+  //   FLIGHTCHECK_FAUCET_PRIVATE_KEY  treasury signing key
+  //   RATE_LIMIT_SECRET               HMAC key so client IPs are never stored in the clear
+  "observability": {
+    "enabled": true
+  }
+}

@@ -26,6 +26,8 @@ interface Manifest {
   recovery: Record<string, unknown> | null;
   benchmark: Record<string, unknown> | null;
   stateMachine: Array<{ stage: string; label: string; independentOfKeeperHub: boolean }>;
+  bootstrap: Record<string, unknown> | null;
+  faucet: Record<string, unknown> | null;
   failureCodes: number;
   tests: Record<string, unknown> | null;
 }
@@ -133,6 +135,38 @@ function legs(): string {
       ${i < rows.length - 1 ? '<div class="arrow">↓ agrees with</div>' : ""}`,
     )
     .join("");
+}
+
+function faucetCard(): string {
+  const f = m.faucet;
+  if (!f || f.pass !== true) {
+    return `<div class="card" style="margin-top:16px"><h3>Gas fallback</h3><p style="margin-top:8px">${nm}</p></div>`;
+  }
+  return `
+    <div class="card" style="margin-top:16px">
+      <div class="head" style="margin-bottom:12px">
+        <h3 style="margin-right:8px">Gas fallback</h3>
+        <span class="badge">LIVE</span>
+        <span class="pill">Base Sepolia only</span>
+        <span class="pill">fixed payout</span>
+      </div>
+      <p>
+        A deliberately small faucet for the one case above. Not a general-purpose faucet: it takes
+        no amount and no chain, one payout per address per day, and a replay of the same request
+        returns the original transaction rather than sending again.
+      </p>
+      <div class="kv">
+        <div class="k">treasury</div><div class="v">${esc(f.treasuryAddress)}</div>
+        <div class="k">fixed payout</div><div class="v">${esc(f.fixedPayoutWei)} wei (0.0001 ETH)</div>
+        <div class="k">live test tx</div><div class="v"><a href="${esc(f.explorerUrl)}">${esc(f.transactionHash)}</a></div>
+        <div class="k">acceptance</div><div class="v">${esc(f.passed)}/${esc(f.total)} checks against the deployed service and real Base Sepolia</div>
+      </div>
+      <p class="sub" style="margin-top:16px">
+        The KeeperHub insufficient-balance condition that triggers this is fixture-tested, not
+        live-reproduced. Our organisation is sponsored, and engineering an unsafe execution failure
+        to demonstrate a fallback would be the wrong trade.
+      </p>
+    </div>`;
 }
 
 function benchmarkSection(): string {
@@ -300,6 +334,53 @@ const html = `<!doctype html>
         .join("")}
       </tbody></table>
     </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2>Zero to execution</h2>
+    <p>
+      One command from a fresh clone. No <code class="mono">.env</code> to create, no
+      <code class="mono">npm install</code>, and the credential never passes through whatever tool
+      told you to run it.
+    </p>
+    <pre style="margin-top:24px"><span class="c"># fresh clone</span>
+${esc((m.bootstrap?.command as string) ?? "npm run flightcheck -- setup --execute")}
+
+  ✓ Node runtime supported
+  ✓ KeeperHub API reachable
+  <span class="c">! KeeperHub organisation credential required</span>
+  <span class="c">  read from an interactive terminal, never echoed, never written to disk</span>
+  ✓ Organisation key accepted, held in memory only
+  ✓ Organisation wallet resolved
+  ✓ Canonical canary bytecode verified
+  ✓ Simulation passed
+  ...
+  <span class="g">Verified.</span></pre>
+    <div class="grid g2" style="margin-top:24px">
+      <div class="card">
+        <h3>The credential boundary</h3>
+        <p style="margin-top:8px">
+          An AI agent can tell you to run <code class="mono">setup</code>. It cannot read what you
+          type into it. The key is read in raw TTY mode with echo suppressed, held in memory for
+          the run, and never written to a file, a capsule, a log, or the command line. With no
+          private terminal, Flightcheck stops rather than reading from a pipe.
+        </p>
+      </div>
+      <div class="card">
+        <h3>KeeperHub first, always</h3>
+        <p style="margin-top:8px">
+          The canonical transaction was executed from a wallet holding <strong>zero ETH</strong>,
+          because KeeperHub sponsored it. So a zero balance is never a reason to fund anything.
+          The gas fallback becomes eligible only after KeeperHub returns a conclusive
+          insufficient-balance condition <em>before any broadcast</em>. Anything ambiguous refuses
+          and resumes instead, because funding a wallet mid-ambiguity is how one operation becomes
+          two transactions.
+        </p>
+      </div>
+    </div>
+    ${faucetCard()}
   </div>
 </section>
 

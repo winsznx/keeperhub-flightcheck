@@ -1,0 +1,52 @@
+
+LIVE FAUCET ACCEPTANCE
+========================================================================
+  faucet     https://keeperhub-flightcheck-faucet.timjosh507.workers.dev
+  recipient  0x814a75aa47393f455fb7968b505c11b0a5bfb9ba  (fresh, never used)
+  requestId  flightcheck-faucet-live-1786466725974-32e4da8c
+
+  treasury   0x944471E945bcdFc5e4bb4afc481375E54D48BeBd
+  balance    2000000000000000000 wei
+  enabled    true
+
+1. Recipient starts below threshold
+  PASS  recipient balance is zero  0 wei
+
+2. Faucet request accepted and mined
+  PASS  status is funded  funded
+  PASS  a transaction hash was returned  0x39b1504c2f4f371bdab5451da6251b7e5fa397757882a957fb285e75f6a69ab9
+  PASS  not reported as a replay
+  PASS  amount is exactly the fixed payout  100000000000000
+
+3. Receipt verified independently against Base Sepolia
+  PASS  receipt exists
+  PASS  receipt status is success  0x1
+
+4. Recipient balance increased by exactly the payout
+  PASS  balance increased by the payout  100000000000000 wei
+
+5. Replay of the same requestId sends nothing new
+  PASS  replay reports funded  funded
+  PASS  replay is marked as a replay
+  PASS  replay returns the original transaction  0x39b1504c2f4f371bdab5451da6251b7e5fa397757882a957fb285e75f6a69ab9
+  PASS  balance unchanged by the replay  100000000000000 wei
+
+6. A fresh requestId for the same address cannot walk around the cooldown
+  PASS  second request refused  already_sufficient
+  PASS  balance unchanged by the second request  100000000000000 wei
+
+7. Two concurrent claims for one fresh id produce at most one transaction
+  PASS  at most one distinct transaction across both responses  1 distinct hash(es), statuses funded/rate_limited
+  PASS  concurrent claims funded the recipient at most once  0 wei
+
+8. Caller cannot widen scope
+  PASS  an amount parameter is rejected
+  PASS  a chainId parameter is rejected
+  PASS  the zero address is rejected
+  PASS  the treasury cannot fund itself  invalid_address
+  PASS  a malformed address is rejected
+
+========================================================================
+  21/21 checks passed
+  PASS
+

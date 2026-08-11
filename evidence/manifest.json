@@ -1,6 +1,6 @@
 {
   "schema": "keeperhub-flightcheck/manifest/v1",
-  "generatedAt": "2026-08-11T14:04:12.566Z",
+  "generatedAt": "2026-08-11T16:52:43.081Z",
   "toolVersion": "0.1.0",
   "proofSchema": "keeperhub-flightcheck/v1",
   "canary": {
@@ -41,10 +41,10 @@
     "completedAt": "2026-08-11T11:34:42.919Z"
   },
   "runs": {
-    "total": 5,
-    "verified": 5,
-    "endToEndRuns": 4,
-    "fastestEndToEndMs": 8110,
+    "total": 6,
+    "verified": 6,
+    "endToEndRuns": 5,
+    "fastestEndToEndMs": 8002,
     "slowestEndToEndMs": 10515,
     "timingNote": "Timings cover cold end-to-end runs only. Resumed runs are excluded: they skip simulation and re-read an already-mined transaction, so their totals are not comparable.",
     "all": [
@@ -82,6 +82,13 @@
         "executionId": "xua1gvv62zaydnuprvc2w",
         "totalMs": 5588,
         "completedAt": "2026-08-11T12:30:46.654Z"
+      },
+      {
+        "runId": "fc_de17ac08-6a76-499b-85f1-c3644135c765",
+        "transactionHash": "0x7910d512b89ac14b98308937171287d46b9e66cdcbb4d75eeb210b7f1b3b5f4a",
+        "executionId": "dbcu4daj7ak08fia2xs4p",
+        "totalMs": 8002,
+        "completedAt": "2026-08-11T16:49:18.135Z"
       }
     ]
   },
@@ -178,6 +185,141 @@
       ]
     }
   },
+  "bootstrap": {
+    "command": "npm run flightcheck -- setup --execute",
+    "requiresEnvFile": false,
+    "credentialSource": "hidden interactive TTY prompt, or KEEPERHUB_API_KEY for CI",
+    "credentialPersisted": false,
+    "credentialAcceptedOnArgv": false,
+    "failsClosedWithoutTty": true,
+    "gasPolicy": "KeeperHub first. A zero balance never triggers funding on its own."
+  },
+  "faucet": {
+    "test": "faucet live acceptance",
+    "note": "Run against the deployed Worker and real Base Sepolia. No mocks.",
+    "startedAt": "2026-08-11T16:45:25.972Z",
+    "completedAt": "2026-08-11T16:45:35.730Z",
+    "faucetUrl": "https://keeperhub-flightcheck-faucet.timjosh507.workers.dev",
+    "treasuryAddress": "0x944471E945bcdFc5e4bb4afc481375E54D48BeBd",
+    "chainId": 84532,
+    "fixedPayoutWei": "100000000000000",
+    "recipient": "0x814a75aa47393f455fb7968b505c11b0a5bfb9ba",
+    "requestId": "flightcheck-faucet-live-1786466725974-32e4da8c",
+    "transactionHash": "0x39b1504c2f4f371bdab5451da6251b7e5fa397757882a957fb285e75f6a69ab9",
+    "explorerUrl": "https://sepolia.basescan.org/tx/0x39b1504c2f4f371bdab5451da6251b7e5fa397757882a957fb285e75f6a69ab9",
+    "recipientBalanceBeforeWei": "0",
+    "recipientBalanceAfterWei": "100000000000000",
+    "checks": [
+      {
+        "name": "recipient balance is zero",
+        "pass": true,
+        "detail": "0 wei"
+      },
+      {
+        "name": "status is funded",
+        "pass": true,
+        "detail": "funded"
+      },
+      {
+        "name": "a transaction hash was returned",
+        "pass": true,
+        "detail": "0x39b1504c2f4f371bdab5451da6251b7e5fa397757882a957fb285e75f6a69ab9"
+      },
+      {
+        "name": "not reported as a replay",
+        "pass": true,
+        "detail": ""
+      },
+      {
+        "name": "amount is exactly the fixed payout",
+        "pass": true,
+        "detail": "100000000000000"
+      },
+      {
+        "name": "receipt exists",
+        "pass": true,
+        "detail": ""
+      },
+      {
+        "name": "receipt status is success",
+        "pass": true,
+        "detail": "0x1"
+      },
+      {
+        "name": "balance increased by the payout",
+        "pass": true,
+        "detail": "100000000000000 wei"
+      },
+      {
+        "name": "replay reports funded",
+        "pass": true,
+        "detail": "funded"
+      },
+      {
+        "name": "replay is marked as a replay",
+        "pass": true,
+        "detail": ""
+      },
+      {
+        "name": "replay returns the original transaction",
+        "pass": true,
+        "detail": "0x39b1504c2f4f371bdab5451da6251b7e5fa397757882a957fb285e75f6a69ab9"
+      },
+      {
+        "name": "balance unchanged by the replay",
+        "pass": true,
+        "detail": "100000000000000 wei"
+      },
+      {
+        "name": "second request refused",
+        "pass": true,
+        "detail": "already_sufficient"
+      },
+      {
+        "name": "balance unchanged by the second request",
+        "pass": true,
+        "detail": "100000000000000 wei"
+      },
+      {
+        "name": "at most one distinct transaction across both responses",
+        "pass": true,
+        "detail": "1 distinct hash(es), statuses funded/rate_limited"
+      },
+      {
+        "name": "concurrent claims funded the recipient at most once",
+        "pass": true,
+        "detail": "0 wei"
+      },
+      {
+        "name": "an amount parameter is rejected",
+        "pass": true,
+        "detail": ""
+      },
+      {
+        "name": "a chainId parameter is rejected",
+        "pass": true,
+        "detail": ""
+      },
+      {
+        "name": "the zero address is rejected",
+        "pass": true,
+        "detail": ""
+      },
+      {
+        "name": "the treasury cannot fund itself",
+        "pass": true,
+        "detail": "invalid_address"
+      },
+      {
+        "name": "a malformed address is rejected",
+        "pass": true,
+        "detail": ""
+      }
+    ],
+    "passed": 21,
+    "total": 21,
+    "pass": true
+  },
   "stateMachine": [
     {
       "stage": "START",
@@ -240,7 +382,7 @@
       "independentOfKeeperHub": false
     }
   ],
-  "failureCodes": 39,
+  "failureCodes": 43,
   "tests": {
     "command": "npm test",
     "tests": 84,

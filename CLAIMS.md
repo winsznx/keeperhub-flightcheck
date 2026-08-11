@@ -14,7 +14,7 @@ Proof levels:
 | **fixture** | a parser or state-machine test against a captured real response shape, not a live reproduction |
 | **observed** | seen on our runs, not guaranteed to generalise |
 
-Last verified: 2026-08-11, after an external adversarial audit. Rows 8 and 35 were downgraded or
+Last verified: 2026-08-11, after an external adversarial audit and the Bootstrap extension. Rows 8 and 35 were downgraded or
 withdrawn as a result, and rows 4, 12 and 14 were narrowed to what the evidence actually shows.
 The audit report is in `internal/audit-report.md`.
 
@@ -93,6 +93,26 @@ Each of these is stated in the teardown at the level below and nowhere stronger.
 | 38 | Two PRs are open and unmerged against KeeperHub/keeperhub, and neither change is on `staging` as of 2026-08-11 | verifiable | [#2008](https://github.com/KeeperHub/keeperhub/pull/2008), [#2009](https://github.com/KeeperHub/keeperhub/pull/2009). Predecessors #2005/#2006 were closed by us, not by a maintainer, after a commit-authorship rewrite detached their branches |
 | 37 | The org wallet's explorer view shows nothing for a sponsored execution | onchain | `receipt.from` is a relayer; org wallet balance was 0 throughout |
 
+## Bootstrap and the gas fallback
+
+| # | Claim | Level | Evidence |
+|---|---|---|---|
+| 39 | The interactive key prompt echoes nothing | automated | `bootstrap.test.ts` "the hidden prompt echoes nothing" captures the output stream and asserts the key is absent |
+| 40 | An interactively supplied key is never written to `.env`, run state, a capsule or a log | automated | it exists only as a local in `runBootstrap`; the capsule redaction test covers the output side |
+| 41 | A credential on the command line is refused | automated | `bootstrap.test.ts` covers `--key`, `--api-key=`, a bare `kh_` and a bare `wfb_` argument |
+| 42 | With no TTY and no environment key, Flightcheck fails closed rather than reading a pipe | automated + live | `FC_SECRET_TTY_REQUIRED`; reproduced live with `< /dev/null` |
+| 43 | The environment path still works for CI | automated + live | `bootstrap.test.ts`; the live `setup --execute` run used it |
+| 44 | The faucet request contains no KeeperHub credential | automated | a realistic `kh_` key is registered, a real client request is issued, and the whole outbound URL, headers and body are asserted to contain no byte of it and no `Authorization` header |
+| 45 | A zero balance alone never triggers the faucet | automated + onchain | `gaspolicy` refuses on `sponsored_success`; the canonical transaction was executed from a zero-balance wallet |
+| 46 | An ambiguous or possibly-broadcast failure never triggers the faucet | automated | 11 refusal cases in `bootstrap.test.ts`, including transport loss, unconfirmed, and an existing execution id |
+| 47 | A new idempotency key is only minted after a proven pre-broadcast failure | automated | `mayStartNewLogicalRun` tests |
+| 48 | The faucet is Base Sepolia only and takes no caller-selected chain or amount | live | live acceptance rejects `amountWei` and `chainId` with `invalid_request` |
+| 49 | The faucet sends exactly one transaction per logical claim | live | live acceptance: replay returns the original hash, balance unchanged, concurrent claims produce one distinct hash |
+| 50 | A live faucet transfer was executed and independently verified | onchain | [`0x39b1504c2f4f371bdab5451da6251b7e5fa397757882a957fb285e75f6a69ab9`](https://sepolia.basescan.org/tx/0x39b1504c2f4f371bdab5451da6251b7e5fa397757882a957fb285e75f6a69ab9), receipt status `0x1`, recipient balance increased by exactly the fixed payout |
+| 51 | 21/21 live faucet acceptance checks pass against the deployed service and real Base Sepolia | live | `evidence/faucet/live-acceptance.json` |
+| 52 | The treasury private key never entered the repository, git history, or any model-visible output | measured | generated locally, piped to `wrangler secret put` over stdin; the published address was read back from the Worker, which derives it from the secret |
+| 53 | The Flightcheck CLI has zero runtime dependencies. The faucet Worker has one, `viem` | measured | root `package.json` empty `dependencies`; `faucet/package.json` has `viem` only, `npm audit` clean on both |
+
 ## Deliberately not claimed
 
 - Not claimed: that gas sponsorship applies to any organisation other than ours. Every run
@@ -105,3 +125,15 @@ Each of these is stated in the teardown at the level below and nowhere stronger.
   agent onboarding benchmark.
 - Not claimed: that the fixture-based tests are live reproductions. They are labelled `fixture`
   above and in the test file header.
+- Not claimed: that every KeeperHub user needs faucet gas. Ours never has; the canonical
+  transaction was sponsored from a zero-balance wallet.
+- Not claimed: that gas sponsorship can be known in advance, or that every KeeperHub organisation
+  is sponsored. Each run reports the `sponsored` flag it observed.
+- **Not claimed: that the gas fallback has been observed after a real KeeperHub
+  `insufficient_balance` response.** It has not. The policy that decides when to fund is
+  fixture-tested from a captured response shape, and the faucet is live-tested separately. We will
+  not engineer an unsafe execution failure to make a fallback look useful.
+- Not claimed: that the faucet prevents all abuse, supports any chain other than Base Sepolia, or
+  is production infrastructure.
+- Not claimed: a measured time saving from the bootstrap path. What is claimed is narrower and
+  testable: the primary first-run path no longer requires creating or editing a `.env` file.

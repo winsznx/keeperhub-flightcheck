@@ -60,6 +60,12 @@ export type FailureCode =
   | "FC_EVENT_SENDER_MISMATCH"
   | "FC_HASH_DISAGREEMENT"
   // resume
+  // bootstrap and gas fallback
+  | "FC_SECRET_TTY_REQUIRED"
+  | "FC_SECRET_CANCELLED"
+  | "FC_SECRET_IN_ARGV"
+  | "FC_FAUCET_UNAVAILABLE"
+  // resume
   | "FC_RESUME_NOT_FOUND"
   | "FC_RESUME_NOTHING_TO_REPLAY"
   | "FC_RESUME_WINDOW_EXPIRED";
@@ -371,6 +377,44 @@ export const FAILURES: Record<FailureCode, FailureSpec> = {
     remediation: (c) =>
       `KeeperHub reported ${c.keeperhub}, verification followed ${c.independent}. The two proof\n` +
       "legs must resolve to one transaction or the result means nothing.",
+  },
+  FC_SECRET_TTY_REQUIRED: {
+    stage: "START",
+    title: "No private terminal to type a credential into",
+    broadcastPossible: false,
+    remediation: () =>
+      "Flightcheck needs a KeeperHub organisation key, and this process has no interactive TTY,\n" +
+      "so there is nowhere safe to type one. Run this in your own terminal:\n\n" +
+      "  npm run flightcheck -- setup --execute\n\n" +
+      "Never pass the key as a command-line argument and never pipe it through another program.\n" +
+      "Argv is visible to every process on the machine, and a pipe means something other than you\n" +
+      "is holding the key.\n\n" +
+      "For CI, set KEEPERHUB_API_KEY in the environment instead.",
+  },
+  FC_SECRET_CANCELLED: {
+    stage: "START",
+    title: "Credential entry cancelled",
+    broadcastPossible: false,
+    remediation: () => "Nothing was sent and nothing was stored. Re-run when you are ready.",
+  },
+  FC_SECRET_IN_ARGV: {
+    stage: "START",
+    title: "Refusing to accept a credential from the command line",
+    broadcastPossible: false,
+    remediation: () =>
+      "A value that looks like a credential was passed as an argument. Flightcheck does not\n" +
+      "accept keys that way, because argv is readable by every process on the machine and lands\n" +
+      "in shell history.\n\n" +
+      "Treat any key already typed there as exposed and rotate it, then run:\n\n" +
+      "  npm run flightcheck -- setup --execute",
+  },
+  FC_FAUCET_UNAVAILABLE: {
+    stage: "SIMULATION_PASSED",
+    title: "The gas fallback could not be reached",
+    broadcastPossible: false,
+    remediation: () =>
+      "Nothing was broadcast and nothing was funded. The Flightcheck faucet is a convenience,\n" +
+      "not a dependency: fund the organisation wallet from any Base Sepolia faucet and re-run.",
   },
   FC_RESUME_NOT_FOUND: {
     stage: "START",

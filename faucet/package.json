@@ -1,0 +1,21 @@
+{
+  "name": "keeperhub-flightcheck-faucet",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Base Sepolia gas fallback for KeeperHub Flightcheck onboarding. Testnet only, fixed payout, not a general-purpose faucet.",
+  "type": "module",
+  "scripts": {
+    "deploy": "wrangler deploy",
+    "db:init": "wrangler d1 execute flightcheck-faucet --remote --file=./schema.sql",
+    "audit": "npm audit --omit=dev",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "viem": "^2.21.0"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^5.20260804.1",
+    "typescript": "^5.7.2",
+    "wrangler": "^4.119.0"
+  }
+}

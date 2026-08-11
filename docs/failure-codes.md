@@ -18,6 +18,9 @@ Run started.
 | `FC_ENV_MISSING_KEY` | No KeeperHub API key found | no |
 | `FC_ENV_WRONG_KEY_TYPE` | That is a user key, not an organisation key | no |
 | `FC_ENV_MALFORMED_KEY` | API key is not in a recognised format | no |
+| `FC_SECRET_TTY_REQUIRED` | No private terminal to type a credential into | no |
+| `FC_SECRET_CANCELLED` | Credential entry cancelled | no |
+| `FC_SECRET_IN_ARGV` | Refusing to accept a credential from the command line | no |
 | `FC_RESUME_NOT_FOUND` | No stored run with that id | no |
 | `FC_RESUME_NOTHING_TO_REPLAY` | That run never sent anything, so there is nothing to resume | no |
 | `FC_RESUME_WINDOW_EXPIRED` | Too old to resume safely | **yes** |
@@ -43,6 +46,39 @@ Run started.
 
 > KEEPERHUB_API_KEY should start with kh_. Check for a partial paste, a quoted value or a
 > trailing newline in .env.
+
+### `FC_SECRET_TTY_REQUIRED`
+
+**No private terminal to type a credential into**
+
+> Flightcheck needs a KeeperHub organisation key, and this process has no interactive TTY,
+> so there is nowhere safe to type one. Run this in your own terminal:
+> 
+>   npm run flightcheck -- setup --execute
+> 
+> Never pass the key as a command-line argument and never pipe it through another program.
+> Argv is visible to every process on the machine, and a pipe means something other than you
+> is holding the key.
+> 
+> For CI, set KEEPERHUB_API_KEY in the environment instead.
+
+### `FC_SECRET_CANCELLED`
+
+**Credential entry cancelled**
+
+> Nothing was sent and nothing was stored. Re-run when you are ready.
+
+### `FC_SECRET_IN_ARGV`
+
+**Refusing to accept a credential from the command line**
+
+> A value that looks like a credential was passed as an argument. Flightcheck does not
+> accept keys that way, because argv is readable by every process on the machine and lands
+> in shell history.
+> 
+> Treat any key already typed there as exposed and rotate it, then run:
+> 
+>   npm run flightcheck -- setup --execute
 
 ### `FC_RESUME_NOT_FOUND`
 
@@ -196,6 +232,7 @@ Simulation passed.
 | `FC_SIM_REVERT` | Simulation says the call would revert | no |
 | `FC_SIM_INSUFFICIENT_BALANCE` | Execution wallet cannot pay for this transaction | no |
 | `FC_SIM_REJECTED` | KeeperHub rejected the simulation request | no |
+| `FC_FAUCET_UNAVAILABLE` | The gas fallback could not be reached | no |
 
 ### `FC_SIM_REVERT`
 
@@ -220,6 +257,13 @@ Simulation passed.
 **KeeperHub rejected the simulation request**
 
 > The request was malformed. Nothing was broadcast.
+
+### `FC_FAUCET_UNAVAILABLE`
+
+**The gas fallback could not be reached**
+
+> Nothing was broadcast and nothing was funded. The Flightcheck faucet is a convenience,
+> not a dependency: fund the organisation wallet from any Base Sepolia faucet and re-run.
 
 ## EXECUTION_PREPARED
 

@@ -14,6 +14,10 @@ import { RunStore } from "./runstore.ts";
 import { BASE_SEPOLIA, TOOL_VERSION } from "./config.ts";
 import { resolve } from "node:path";
 import * as ui from "./ui.ts";
+import { runBootstrap } from "./bootstrap.ts";
+import { assertNoSecretInArgv } from "./secret-input.ts";
+import { loadDotenv, registerEnvSecrets, REPO_ROOT as ROOT } from "./env.ts";
+import { resolve as resolvePath } from "node:path";
 
 /**
  * Keep evidence/manifest.json in step with the capsules on disk.
@@ -32,12 +36,13 @@ async function refreshManifest(): Promise<void> {
 interface Args {
   readonly execute: boolean;
   readonly resume?: string;
-  readonly command: "run" | "status" | "help" | "version";
+  readonly command: "run" | "setup" | "status" | "help" | "version";
+  readonly assumeYes: boolean;
   readonly statusRunId?: string;
   readonly json: boolean;
 }
 
-const KNOWN_FLAGS = new Set(["--execute", "--resume", "--json", "--help", "-h", "--version", "-v"]);
+const KNOWN_FLAGS = new Set(["--execute", "--resume", "--json", "--help", "-h", "--version", "-v", "--yes", "-y"]);
 
 class UsageError extends Error {}
 
@@ -49,17 +54,29 @@ class UsageError extends Error {}
  */
 function parseArgs(argv: readonly string[]): Args {
   const args = argv.slice(2);
+  // Before anything else. A credential on argv is already exposed to every process on the
+  // machine, so the only useful response is to refuse and say so.
+  assertNoSecretInArgv(args);
   const json = args.includes("--json");
+  const assumeYes = args.includes("--yes") || args.includes("-y");
   if (args.includes("--help") || args.includes("-h")) {
-    return { execute: false, command: "help", json };
+    return { execute: false, command: "help", json, assumeYes };
   }
   if (args.includes("--version") || args.includes("-v")) {
-    return { execute: false, command: "version", json };
+    return { execute: false, command: "version", json, assumeYes };
   }
+  if (args[0] === "setup") {
+    const rest = args.slice(1).filter((a) => a.startsWith("-"));
+    for (const a of rest) {
+      if (!KNOWN_FLAGS.has(a)) throw new UsageError(`Unknown flag: ${a}`);
+    }
+    return { execute: args.includes("--execute"), command: "setup", json, assumeYes };
+  }
+
   if (args[0] === "status") {
     const rest = args.slice(2).filter((a) => a !== "--json");
     if (rest.length) throw new UsageError(`Unexpected argument: ${rest[0]}`);
-    return { execute: false, command: "status", statusRunId: args[1], json };
+    return { execute: false, command: "status", statusRunId: args[1], json, assumeYes };
   }
 
   const resumeIdx = args.indexOf("--resume");
@@ -87,7 +104,7 @@ function parseArgs(argv: readonly string[]): Args {
     }
   }
 
-  return { execute: args.includes("--execute"), resume, command: "run", json };
+  return { execute: args.includes("--execute"), resume, command: "run", json, assumeYes };
 }
 
 const HELP = `
@@ -97,15 +114,22 @@ KeeperHub Flightcheck ${TOOL_VERSION}
   environment, and stops at the exact stage that fails if it cannot.
 
 Usage
+  npm run flightcheck -- setup --execute   guided first run, no .env needed
   npm run flightcheck                      preflight only, broadcasts nothing
   npm run flightcheck -- --execute         broadcast one zero-value call to the canary
   npm run flightcheck -- --resume <run-id> recover a run whose response was lost
   npm run flightcheck -- status [run-id]   inspect persisted runs
 
 Flags
+  --yes       skip the gas-fallback confirmation prompt
   --json      machine-readable result on stdout
   --version   print version and the pinned canary
   --help      this text
+
+Credentials
+  setup reads the KeeperHub organisation key from an interactive terminal. It is never
+  echoed, never written to disk, and never sent anywhere except KeeperHub itself. Keys are
+  not accepted on the command line. For CI, set KEEPERHUB_API_KEY in the environment.
 
 Safety
   Simulate-only by default. Testnet only. Only the pinned canary contract, only a
@@ -138,6 +162,71 @@ async function main(): Promise<number> {
     ui.out(`chain       ${BASE_SEPOLIA.chainName} (${BASE_SEPOLIA.chainId})`);
     ui.out(`bytecode    ${BASE_SEPOLIA.expectedRuntimeBytecodeHash}`);
     return 0;
+  }
+
+  if (args.command === "setup") {
+    // Deliberately does not call loadEnv(), which throws when no key is configured. Bootstrap
+    // exists precisely for the case where nothing is configured yet.
+    loadDotenv();
+    registerEnvSecrets();
+    const outcome = await runBootstrap({
+      execute: args.execute,
+      chainId: Number(process.env.FLIGHTCHECK_CHAIN_ID ?? BASE_SEPOLIA.chainId),
+      rpcUrl: (process.env.FLIGHTCHECK_RPC_URL ?? BASE_SEPOLIA.defaultRpcUrl).trim(),
+      stateDir: resolvePath(ROOT, ".keeperhub", "flightcheck"),
+      envKey: process.env.KEEPERHUB_API_KEY,
+      assumeYes: args.assumeYes,
+    });
+
+    const r = outcome.result;
+    if (r.outcome !== "simulated") {
+      const capsule = buildCapsule(r, (process.env.FLIGHTCHECK_RPC_URL ?? BASE_SEPOLIA.defaultRpcUrl).trim());
+      const proofsDir = resolvePath(ROOT, ".keeperhub", "flightcheck", "proofs");
+      const targets =
+        r.outcome === "verified" ? [proofsDir, resolvePath(ROOT, "evidence", "runs")] : [proofsDir];
+      const written = writeCapsule(capsule, targets);
+      if (r.outcome === "verified") {
+        await refreshManifest();
+        ui.verified({
+          txHash: r.record.transactionHash!,
+          txLink: r.deployment.explorerTxBase + r.record.transactionHash,
+          executionId: r.record.executionId!,
+          chainId: r.deployment.chainId,
+          challenge: r.record.challenge,
+          sender: r.event!.sender,
+          sponsored: r.sponsored,
+          blockNumber: parseInt(r.receipt!.blockNumber, 16),
+          proofPaths: written,
+          totalMs: Object.values(r.timings).reduce((a, b) => a + b, 0),
+        });
+        return 0;
+      }
+    }
+
+    if (r.outcome === "simulated") {
+      ui.simulated({
+        gasEstimate: r.simulation?.gasEstimate ?? null,
+        from: r.simulation?.from ?? null,
+      });
+      return 0;
+    }
+    if (r.outcome === "unconfirmed") {
+      ui.unconfirmed({
+        runId: r.record.runId,
+        txHash: r.record.transactionHash,
+        reason: r.error?.remediation ?? "The execution has not reached a terminal state.",
+      });
+      return 2;
+    }
+    const err = r.error!;
+    ui.stageStopped(r.stageReached, err.stage);
+    ui.failure({
+      code: err.code,
+      title: err.title,
+      remediation: err.remediation,
+      broadcastPossible: err.broadcastPossible,
+    });
+    return 1;
   }
 
   const env = loadEnv();
