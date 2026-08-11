@@ -1,5 +1,9 @@
 # FINAL-DELTA
 
+*Historical record of the consistency pass on 2026-08-11, before the Bootstrap extension.
+Numbers here are correct as of that pass and are deliberately not updated. Current numbers live in
+`evidence/manifest.json` and `SUBMISSION-DELTA.md`.*
+
 Consistency pass only. No features added, no product behaviour changed.
 
 ## Authoritative test count

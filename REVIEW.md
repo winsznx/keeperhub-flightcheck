@@ -225,7 +225,7 @@ Full captured run in `evidence/final-gate-run.txt`. Eight gates, all passing:
 ## 13. Diff statistics
 
 55 tracked files. 5,000-odd lines of TypeScript, 150 of Solidity, 2,234 of documentation, 15
-evidence files. 84 tests, all passing, no network required, from a clean clone with no
+evidence files. 113 tests, all passing, no network required, from a clean clone with no
 `npm install`.
 
 ## 14. DoraHacks submission draft
