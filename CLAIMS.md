@@ -64,7 +64,7 @@ The audit report is in `internal/audit-report.md`.
 | 22 | A `failed` execution whose receipts are only `not_found`/`timeout` is downgraded to UNCONFIRMED | automated | `unit.test.ts` reconcileState tests |
 | 23 | A wrong-key-type mistake is diagnosed by name before any network call | automated | `unit.test.ts` classifyKey plus the FC_ENV_WRONG_KEY_TYPE message test |
 | 24 | Wrong emitter, wrong challenge, wrong chain id and hash disagreement each fail verification | fixture | `machine.test.ts` settlement and verification suite |
-| 25 | 80 tests pass with no network access | measured | `evidence/test-run.json` |
+| 25 | 84 tests pass with no network access, from a fresh clone with no install | measured | `evidence/test-run.json`, regenerated from the run rather than typed |
 
 ## Secrets
 
@@ -90,7 +90,7 @@ Each of these is stated in the teardown at the level below and nowhere stronger.
 | 34 | A simulation passed while the resolved sender held zero native balance | live-api + onchain | simulation response plus `cast balance` at the same time |
 | 35 | ~~`llms.txt` omits the onboarding pages~~ WITHDRAWN. True on 2026-08-10, fixed upstream by 2026-08-11 and re-verified before publication | withdrawn | teardown item 6 records both measurements |
 | 36 | `/api/openapi` contains no core REST path and no bearer security scheme, while being advertised as the REST schema | live-api | reproduction in the teardown, re-verified 2026-08-11: 117 paths, all workflow calls |
-| 38 | Two upstream PRs opened against KeeperHub/keeperhub | verifiable | [#2008](https://github.com/KeeperHub/keeperhub/pull/2008) unconfirmed status, [#2009](https://github.com/KeeperHub/keeperhub/pull/2009) OpenAPI description |
+| 38 | Two PRs are open and unmerged against KeeperHub/keeperhub, and neither change is on `staging` as of 2026-08-11 | verifiable | [#2008](https://github.com/KeeperHub/keeperhub/pull/2008), [#2009](https://github.com/KeeperHub/keeperhub/pull/2009). Predecessors #2005/#2006 were closed by us, not by a maintainer, after a commit-authorship rewrite detached their branches |
 | 37 | The org wallet's explorer view shows nothing for a sponsored execution | onchain | `receipt.from` is a relayer; org wallet balance was 0 throughout |
 
 ## Deliberately not claimed

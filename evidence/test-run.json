@@ -1,11 +1,14 @@
 {
   "command": "npm test",
-  "tests": 80,
+  "tests": 84,
   "suites": 16,
-  "pass": 80,
+  "pass": 84,
   "fail": 0,
-  "skipped": null,
-  "durationMs": 18618.710667,
+  "skipped": 0,
+  "todo": 0,
+  "durationMs": 18799.5,
   "network": "none required",
-  "note": "Unit and state-machine tests. The live fault-injection acceptance test is separate and is recorded in evidence/recovery/."
+  "install": "none required",
+  "capturedAt": "2026-08-11",
+  "note": "Unit and state-machine tests, runnable from a fresh clone with no npm install. The live fault-injection acceptance test is separate, needs credentials, and is run with npm run test:acceptance; its result is in evidence/recovery/."
 }

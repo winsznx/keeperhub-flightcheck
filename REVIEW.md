@@ -53,8 +53,9 @@ rather than self-reported.
 | proof page | https://keeperhub-flightcheck.timjosh507.workers.dev |
 | canonical transaction | https://sepolia.basescan.org/tx/0xb4098917d12030a249e9376217d765b715362c744dd23e9b03e0213253d452dc |
 | canary contract | https://sepolia.basescan.org/address/0x2a6fc8182bf9928ef7517da980dc79e8107c555a |
-| upstream PR 1 | https://github.com/KeeperHub/keeperhub/pull/2008 |
-| upstream PR 2 | https://github.com/KeeperHub/keeperhub/pull/2009 |
+| upstream PR 1 | https://github.com/KeeperHub/keeperhub/pull/2008 (open, unmerged) |
+| upstream PR 2 | https://github.com/KeeperHub/keeperhub/pull/2009 (open, unmerged) |
+| superseded | #2005 and #2006, closed by me, unmerged, never reviewed |
 
 ## 4. Canonical evidence
 
@@ -129,26 +130,36 @@ run's unique challenge topic, so it is the chain's count and not our bookkeeping
 
 ## 8. Upstream
 
-Two PRs, both docs, both re-verified against the live site immediately before opening.
+**Current status, checked 2026-08-11.** Two PRs open and unmerged. Neither change is on
+`staging`. Two earlier PRs closed and unmerged.
 
-- **#2008**, `unconfirmed` is a live execution state missing from the Direct Execution status
-  list while documented as non-terminal on another page of the same site. 11 lines. This is the
-  one with an onchain consequence: a client with a failing `default` branch reports a false
-  failure, and one that retries with a fresh key can duplicate a transaction.
-- **#2009**, the OpenAPI document is advertised as the machine-readable schema for the REST API
-  and contains zero core REST paths and no bearer scheme. 1 line.
+| PR | state | merged | what |
+|---|---|---|---|
+| [#2008](https://github.com/KeeperHub/keeperhub/pull/2008) | open | no | `unconfirmed` missing from the Direct Execution status list, 1 file, +11 |
+| [#2009](https://github.com/KeeperHub/keeperhub/pull/2009) | open | no | OpenAPI described as the REST schema when it contains no core REST path, 1 file, +1/-1 |
+| #2005 | closed | no | superseded by #2008 |
+| #2006 | closed | no | superseded by #2009 |
 
-Note on numbering: these replace PRs #2005 and #2006, which were opened with a git identity that
-was not linked to the GitHub account. Rewriting the authorship detached those branches from
-`staging`, so they were closed with an explanatory comment and reopened clean. Same one-file
-changes, correct authorship.
+**Why #2005 and #2006 are closed, since a closed PR with no maintainer comment looks like a
+rejection.** It was not. I closed them. They were opened with a git identity not linked to your
+GitHub account, and rewriting the authorship detached the branches from `staging`, so GitHub
+would neither reopen them nor accept a new PR from the same branches. Both were closed at the
+same timestamp because both branches were force-pushed in one command. No maintainer reviewed,
+commented on, or rejected either. Both carry an explanatory comment from me.
+
+If a maintainer later closes #2008 or #2009 without comment, that is a different situation and
+worth asking about in the builder channel. Nothing so far indicates it.
+
+**#2008 is the one that matters.** It is the only finding with an onchain consequence: a client
+written against the endpoint reference sees four states, and both plausible reactions to a fifth
+are wrong. Failing reports a false failure for a settling transaction; retrying with a fresh key
+can duplicate one.
 
 **I did not open the `kh flightcheck` Go PR your brief named as primary.** Reasoning is in
 `internal/decision-log.md`: writing a command that correctly reuses the CLI's `internal/http`,
 `internal/auth`, `internal/config` and `internal/output` means matching a codebase I only
 enumerated, and a half-understood PR against an execution CLI costs a maintainer more than it
-gives them. The standalone artifact already is that command. If you want it attempted anyway,
-that is a clear next task and I would start from `cmd/doctor/doctor.go`.
+gives them. The standalone artifact already is that command.
 
 ## 9. Every public claim
 
@@ -249,7 +260,7 @@ evidence files. 84 tests, all passing, no network required, from a clean clone w
 > Execution: exnn6k0y1ojnnvb8sa1fu
 > Repo: https://github.com/winsznx/keeperhub-flightcheck
 > Proof page: https://keeperhub-flightcheck.timjosh507.workers.dev
-> Upstream: KeeperHub/keeperhub#2008, #2009
+> Upstream: KeeperHub/keeperhub#2008 and #2009, both open and unmerged
 
 ## 15. Demo video shot list
 
@@ -268,7 +279,7 @@ Target 2:15. Must make sense with the sound off, so every claim appears as text 
 | 1:38 | run the fault injection | "response discarded after KeeperHub accepted it" |
 | 1:50 | `--resume` | "replayed the stored response, no second transaction" |
 | 2:00 | `eth_getLogs` count for the challenge | **1** |
-| 2:08 | the two upstream PRs | #2008, #2009 |
+| 2:08 | the two open upstream PRs | #2008, #2009 |
 | 2:12 | close | "onboarding now ends with an onchain fact" |
 
 The fault-recovery segment is mandatory and is the differentiator. Do not cut it for time.

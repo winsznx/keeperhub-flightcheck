@@ -180,7 +180,7 @@ npm run flightcheck -- --execute          # one zero-value call to the pinned ca
 npm run flightcheck -- --resume <run-id>  # recover a run whose response was lost
 npm run flightcheck -- status             # list persisted runs
 npm run --silent flightcheck -- --json    # machine-readable capsule, pipeable into jq
-npm test                                  # 80 tests, no network required
+npm test                                  # 84 tests, no network required
 npm run evidence                          # regenerate evidence/manifest.json by hand
 ```
 
@@ -254,21 +254,27 @@ The teardown records both measurements rather than dropping it.
 
 ## Upstream
 
-Two PRs opened against KeeperHub, both from findings below, both re-verified against the live
-site immediately before opening:
+Two PRs are open against KeeperHub, both docs, both re-verified against the live site
+immediately before opening:
 
 - [#2008](https://github.com/KeeperHub/keeperhub/pull/2008) documents the `unconfirmed`
   execution status, which is live but missing from the Direct Execution status list
 - [#2009](https://github.com/KeeperHub/keeperhub/pull/2009) corrects what the OpenAPI document
   is described as covering
 
-Neither is merged, and nothing here depends on them being merged.
+Neither is merged, and as of 2026-08-11 neither change is on `staging`. Nothing here depends on
+them being merged.
+
+Two earlier PRs, #2005 and #2009's predecessor #2006, are closed and unmerged. I closed them
+myself: they were opened with a git identity not linked to this GitHub account, and rewriting the
+authorship detached the branches from `staging`, so they could not be updated in place. Both
+carry a comment saying so. No maintainer reviewed or rejected them.
 
 ## Repository
 
 ```
 agent/src/       state machine, KeeperHub client, independent verifier, proof writer
-agent/tests/     80 tests plus the live fault-injection acceptance test
+agent/tests/     84 tests plus the live fault-injection acceptance test
 contracts/       the canary, its Foundry tests, and the deploy script
 evidence/        proof capsules, the recovery log, the benchmark, the build manifest
 docs/            teardown, threat model, failure codes, how verification works
