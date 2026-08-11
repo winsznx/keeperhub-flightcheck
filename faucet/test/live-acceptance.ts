@@ -30,7 +30,8 @@ async function rpc<T>(method: string, params: unknown[]): Promise<T> {
     headers: { "content-type": "application/json" },
     body: JSON.stringify({ jsonrpc: "2.0", id: 1, method, params }),
   });
-  return (await res.json()).result as T;
+  const body = (await res.json()) as { result: T };
+  return body.result;
 }
 
 async function balanceOf(address: string): Promise<bigint> {
@@ -74,7 +75,7 @@ async function main(): Promise<number> {
   say(`  requestId  ${requestId}`);
   say();
 
-  const status = await (await fetch(`${FAUCET}/api/faucet/base-sepolia/status`)).json();
+  const status = (await (await fetch(`${FAUCET}/api/faucet/base-sepolia/status`)).json()) as Record<string, string>;
   say(`  treasury   ${status.treasuryAddress}`);
   say(`  balance    ${status.treasuryBalanceWei} wei`);
   say(`  enabled    ${status.enabled}`);
@@ -166,7 +167,7 @@ async function main(): Promise<number> {
   check("a chainId parameter is rejected", withChain.body.status === "invalid_request");
   const zero = await claim("0x0000000000000000000000000000000000000000", `z-${Date.now()}-${randomBytes(4).toString("hex")}`);
   check("the zero address is rejected", zero.body.status === "invalid_address");
-  const treasurySelf = await claim(status.treasuryAddress, `t-${Date.now()}-${randomBytes(4).toString("hex")}`);
+  const treasurySelf = await claim(status.treasuryAddress ?? "0x0000000000000000000000000000000000000001", `t-${Date.now()}-${randomBytes(4).toString("hex")}`);
   check(
     "the treasury cannot fund itself",
     treasurySelf.body.status === "invalid_address" || treasurySelf.body.status === "already_sufficient",

@@ -1,17 +1,36 @@
-FINAL CONSISTENCY PASS  2026-08-11T14:05:45Z
-[1] typecheck
-    PASS
-[2] tests
-    ℹ tests 84
-    ℹ pass 84
-    ℹ fail 0
-[3] contract tests
-    Suite result: ok. 5 passed; 0 failed; 0 skipped; finished in 16.57ms (22.69ms CPU time)
-[4] bytecode source==pin==chain
-    PASS 0x753157870ee9e692c7e35e0890fad801fd30fc4674a74a62a7526758da649dd0
-[5] deps
-    0 runtime, found 0 vulnerabilities
-[6] credentials in tracked files
-    55 files vs 3 credentials: PASS
-[7] git history
-    PASS
+POST-EXTENSION GATE RUN  2026-08-11T17:02:42Z
+======================================================================
+[1]  root typecheck
+     PASS
+[2]  faucet typecheck
+     PASS
+[3]  tests
+     ℹ tests 113
+     ℹ pass 113
+     ℹ fail 0
+[4]  contract tests
+     Suite result: ok. 5 passed; 0 failed; 0 skipped; finished in 19.75ms (25.49ms CPU time)
+[5]  canonical proof still verifies
+     receipt 0x1  PASS
+[6]  response-loss proof intact
+     2 broadcasts, 1 transaction, PASS=True
+[7]  faucet live acceptance
+     21/21 PASS=True
+[8]  faucet service live
+     enabled=True funded=True chain=84532 payout=100000000000000
+[9]  dependencies
+     CLI 0 runtime, audit found 0 vulnerabilities
+     faucet 1 runtime, audit found 0 vulnerabilities
+[10] credentials in tracked files
+     77 tracked files, 3 live credentials, 9 bare 64-hex values
+     live credential or prefix present: none
+     any value deriving the treasury address: none
+     PASS
+[11] git history
+     PASS
+[12] withdrawn claim still absent from every public surface
+     PASS
+[13] non-TTY without env key fails closed
+     PASS
+[14] a credential on argv is refused
+     PASS
