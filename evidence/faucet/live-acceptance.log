@@ -2,11 +2,11 @@
 LIVE FAUCET ACCEPTANCE
 ========================================================================
   faucet     https://keeperhub-flightcheck-faucet.timjosh507.workers.dev
-  recipient  0x814a75aa47393f455fb7968b505c11b0a5bfb9ba  (fresh, never used)
-  requestId  flightcheck-faucet-live-1786466725974-32e4da8c
+  recipient  0x67a5aa5cec65687e3b5e42736549f6ed8b9d4b32  (fresh, never used)
+  requestId  flightcheck-faucet-live-1786471220100-c8e1e66e
 
   treasury   0x944471E945bcdFc5e4bb4afc481375E54D48BeBd
-  balance    2000000000000000000 wei
+  balance    1999299077833864647 wei
   enabled    true
 
 1. Recipient starts below threshold
@@ -14,7 +14,7 @@ LIVE FAUCET ACCEPTANCE
 
 2. Faucet request accepted and mined
   PASS  status is funded  funded
-  PASS  a transaction hash was returned  0x39b1504c2f4f371bdab5451da6251b7e5fa397757882a957fb285e75f6a69ab9
+  PASS  a transaction hash was returned  0x0a0f6576336ef771d7a6b0feaca5c1c7a4560bf2382c814da3836ecf3923150d
   PASS  not reported as a replay
   PASS  amount is exactly the fixed payout  100000000000000
 
@@ -28,16 +28,23 @@ LIVE FAUCET ACCEPTANCE
 5. Replay of the same requestId sends nothing new
   PASS  replay reports funded  funded
   PASS  replay is marked as a replay
-  PASS  replay returns the original transaction  0x39b1504c2f4f371bdab5451da6251b7e5fa397757882a957fb285e75f6a69ab9
+  PASS  replay returns the original transaction  0x0a0f6576336ef771d7a6b0feaca5c1c7a4560bf2382c814da3836ecf3923150d
   PASS  balance unchanged by the replay  100000000000000 wei
 
-6. A fresh requestId for the same address cannot walk around the cooldown
-  PASS  second request refused  already_sufficient
+6. A fresh requestId for the same address sends nothing more
+  PASS  second request refused as already_sufficient  already_sufficient
   PASS  balance unchanged by the second request  100000000000000 wei
+
+6b. The cooldown itself, on an address below the sufficiency threshold
+  PASS  the second distinct request is refused  first=funded second=cooldown
+  PASS  the address was funded at most once  100000000000000 wei
 
 7. Two concurrent claims for one fresh id produce at most one transaction
   PASS  at most one distinct transaction across both responses  1 distinct hash(es), statuses funded/rate_limited
-  PASS  concurrent claims funded the recipient at most once  0 wei
+  PASS  concurrent claims funded the recipient at most once  100000000000000 wei
+
+7b. Concurrent claims with DISTINCT ids and DISTINCT recipients respect the per-caller cap
+  PASS  12 concurrent claims did not exceed the per-caller cap of 5  funded=0 rate_limited=12
 
 8. Caller cannot widen scope
   PASS  an amount parameter is rejected
@@ -47,6 +54,6 @@ LIVE FAUCET ACCEPTANCE
   PASS  a malformed address is rejected
 
 ========================================================================
-  21/21 checks passed
+  24/24 checks passed
   PASS
 

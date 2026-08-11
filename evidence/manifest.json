@@ -1,6 +1,6 @@
 {
   "schema": "keeperhub-flightcheck/manifest/v1",
-  "generatedAt": "2026-08-11T17:41:50.823Z",
+  "generatedAt": "2026-08-11T18:01:14.197Z",
   "toolVersion": "0.1.0",
   "proofSchema": "keeperhub-flightcheck/v1",
   "canary": {
@@ -197,16 +197,16 @@
   "faucet": {
     "test": "faucet live acceptance",
     "note": "Run against the deployed Worker and real Base Sepolia. No mocks.",
-    "startedAt": "2026-08-11T16:45:25.972Z",
-    "completedAt": "2026-08-11T16:45:35.730Z",
+    "startedAt": "2026-08-11T18:00:20.097Z",
+    "completedAt": "2026-08-11T18:00:33.038Z",
     "faucetUrl": "https://keeperhub-flightcheck-faucet.timjosh507.workers.dev",
     "treasuryAddress": "0x944471E945bcdFc5e4bb4afc481375E54D48BeBd",
     "chainId": 84532,
     "fixedPayoutWei": "100000000000000",
-    "recipient": "0x814a75aa47393f455fb7968b505c11b0a5bfb9ba",
-    "requestId": "flightcheck-faucet-live-1786466725974-32e4da8c",
-    "transactionHash": "0x39b1504c2f4f371bdab5451da6251b7e5fa397757882a957fb285e75f6a69ab9",
-    "explorerUrl": "https://sepolia.basescan.org/tx/0x39b1504c2f4f371bdab5451da6251b7e5fa397757882a957fb285e75f6a69ab9",
+    "recipient": "0x67a5aa5cec65687e3b5e42736549f6ed8b9d4b32",
+    "requestId": "flightcheck-faucet-live-1786471220100-c8e1e66e",
+    "transactionHash": "0x0a0f6576336ef771d7a6b0feaca5c1c7a4560bf2382c814da3836ecf3923150d",
+    "explorerUrl": "https://sepolia.basescan.org/tx/0x0a0f6576336ef771d7a6b0feaca5c1c7a4560bf2382c814da3836ecf3923150d",
     "recipientBalanceBeforeWei": "0",
     "recipientBalanceAfterWei": "100000000000000",
     "checks": [
@@ -223,7 +223,7 @@
       {
         "name": "a transaction hash was returned",
         "pass": true,
-        "detail": "0x39b1504c2f4f371bdab5451da6251b7e5fa397757882a957fb285e75f6a69ab9"
+        "detail": "0x0a0f6576336ef771d7a6b0feaca5c1c7a4560bf2382c814da3836ecf3923150d"
       },
       {
         "name": "not reported as a replay",
@@ -263,7 +263,7 @@
       {
         "name": "replay returns the original transaction",
         "pass": true,
-        "detail": "0x39b1504c2f4f371bdab5451da6251b7e5fa397757882a957fb285e75f6a69ab9"
+        "detail": "0x0a0f6576336ef771d7a6b0feaca5c1c7a4560bf2382c814da3836ecf3923150d"
       },
       {
         "name": "balance unchanged by the replay",
@@ -271,12 +271,22 @@
         "detail": "100000000000000 wei"
       },
       {
-        "name": "second request refused",
+        "name": "second request refused as already_sufficient",
         "pass": true,
         "detail": "already_sufficient"
       },
       {
         "name": "balance unchanged by the second request",
+        "pass": true,
+        "detail": "100000000000000 wei"
+      },
+      {
+        "name": "the second distinct request is refused",
+        "pass": true,
+        "detail": "first=funded second=cooldown"
+      },
+      {
+        "name": "the address was funded at most once",
         "pass": true,
         "detail": "100000000000000 wei"
       },
@@ -288,7 +298,12 @@
       {
         "name": "concurrent claims funded the recipient at most once",
         "pass": true,
-        "detail": "0 wei"
+        "detail": "100000000000000 wei"
+      },
+      {
+        "name": "12 concurrent claims did not exceed the per-caller cap of 5",
+        "pass": true,
+        "detail": "funded=0 rate_limited=12"
       },
       {
         "name": "an amount parameter is rejected",
@@ -316,8 +331,8 @@
         "detail": ""
       }
     ],
-    "passed": 21,
-    "total": 21,
+    "passed": 24,
+    "total": 24,
     "pass": true
   },
   "stateMachine": [

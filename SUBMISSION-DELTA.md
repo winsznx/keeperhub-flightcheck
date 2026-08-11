@@ -100,7 +100,7 @@ Add one short segment after the recovery proof:
 
 | time | shot | on screen |
 |---|---|---|
-| +0:12 | the faucet's live acceptance output | "21/21 checks, one transaction per claim" |
+| +0:12 | the faucet's live acceptance output | "24/24 checks, one transaction per claim" |
 | +0:08 | one line of framing | "fallback only for conclusive pre-broadcast gas failure" |
 
 Do not engineer a KeeperHub failure to make the faucet look useful. Sponsorship working from a
@@ -127,7 +127,7 @@ zero-balance wallet is the stronger demonstration.
 
 ## 9. Faucet live-test transaction
 
-> [`0x39b1504c2f4f371bdab5451da6251b7e5fa397757882a957fb285e75f6a69ab9`](https://sepolia.basescan.org/tx/0x39b1504c2f4f371bdab5451da6251b7e5fa397757882a957fb285e75f6a69ab9)
+> [`0x0a0f6576336ef771d7a6b0feaca5c1c7a4560bf2382c814da3836ecf3923150d`](https://sepolia.basescan.org/tx/0x0a0f6576336ef771d7a6b0feaca5c1c7a4560bf2382c814da3836ecf3923150d)
 > Fixed payout of 0.0001 ETH to a fresh address, receipt verified independently, replay of the
 > same request id returned the original transaction rather than sending again.
 

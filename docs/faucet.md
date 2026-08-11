@@ -13,7 +13,7 @@ public one. Everything about this interface is shaped to keep it from becoming t
 | chain | Base Sepolia, 84532, pinned in code |
 | treasury | [`0x944471E945bcdFc5e4bb4afc481375E54D48BeBd`](https://sepolia.basescan.org/address/0x944471e945bcdfc5e4bb4afc481375e54d48bebd) |
 | payout | 0.0001 ETH, fixed |
-| live acceptance test | [`0x39b1504c2f4f371bdab5451da6251b7e5fa397757882a957fb285e75f6a69ab9`](https://sepolia.basescan.org/tx/0x39b1504c2f4f371bdab5451da6251b7e5fa397757882a957fb285e75f6a69ab9) |
+| live acceptance test | [`0x0a0f6576336ef771d7a6b0feaca5c1c7a4560bf2382c814da3836ecf3923150d`](https://sepolia.basescan.org/tx/0x0a0f6576336ef771d7a6b0feaca5c1c7a4560bf2382c814da3836ecf3923150d) |
 
 ## Why 0.0001 ETH
 
