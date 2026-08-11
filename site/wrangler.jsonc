@@ -1,0 +1,11 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "keeperhub-flightcheck",
+  "compatibility_date": "2026-08-01",
+  // Static assets only. There is no Worker script, no database and no server-side state:
+  // the page is generated from evidence/manifest.json at build time and served as a file.
+  "assets": {
+    "directory": "./dist",
+    "not_found_handling": "single-page-application"
+  }
+}

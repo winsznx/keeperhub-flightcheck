@@ -1,0 +1,32 @@
+{
+  "name": "keeperhub-flightcheck",
+  "version": "0.1.0",
+  "description": "Proves KeeperHub can execute, settle and verify a real onchain transaction from a fresh environment, or stops at the exact stage that fails.",
+  "type": "module",
+  "engines": {
+    "node": ">=22.18.0"
+  },
+  "scripts": {
+    "flightcheck": "node --experimental-strip-types --no-warnings agent/src/cli.ts",
+    "test": "node --experimental-strip-types --no-warnings --test agent/tests/*.test.ts",
+    "test:live": "FLIGHTCHECK_LIVE=1 node --experimental-strip-types --no-warnings --test agent/tests/*.test.ts",
+    "typecheck": "tsc --noEmit",
+    "evidence": "node --experimental-strip-types --no-warnings agent/src/manifest.ts",
+    "site:build": "node --experimental-strip-types --no-warnings site/build.ts",
+    "site:deploy": "npm run site:build && wrangler deploy --config site/wrangler.jsonc"
+  },
+  "keywords": [
+    "keeperhub",
+    "onboarding",
+    "onchain",
+    "verification",
+    "idempotency",
+    "base-sepolia"
+  ],
+  "license": "MIT",
+  "dependencies": {},
+  "devDependencies": {
+    "typescript": "^5.7.2",
+    "@types/node": "^22.10.2"
+  }
+}

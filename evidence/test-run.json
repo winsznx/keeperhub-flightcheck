@@ -1,0 +1,11 @@
+{
+  "command": "npm test",
+  "tests": 80,
+  "suites": 16,
+  "pass": 80,
+  "fail": 0,
+  "skipped": null,
+  "durationMs": 18618.710667,
+  "network": "none required",
+  "note": "Unit and state-machine tests. The live fault-injection acceptance test is separate and is recorded in evidence/recovery/."
+}

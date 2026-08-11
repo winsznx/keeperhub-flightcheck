@@ -1,0 +1,76 @@
+{
+  "artifact": "keeperhub-flightcheck/canary-build/v1",
+  "contract": "KeeperHubFlightcheckCanary",
+  "sourcePath": "contracts/src/KeeperHubFlightcheckCanary.sol",
+  "note": "Recorded BEFORE deployment. The deployed canary must hash to expectedRuntimeBytecodeHash or Flightcheck fails closed at CANARY_VERIFIED.",
+  "compiler": {
+    "solc": "0.8.24",
+    "evmVersion": "cancun",
+    "optimizer": true,
+    "optimizerRuns": 200,
+    "bytecodeHash": "none",
+    "cborMetadata": false,
+    "toolchain": "forge Version: 1.7.1"
+  },
+  "reproducible": {
+    "verified": true,
+    "method": "forge clean && forge build, hash compared across two clean builds"
+  },
+  "abiVersion": "1",
+  "abi": [
+    {
+      "type": "function",
+      "name": "ping",
+      "inputs": [
+        {
+          "name": "challenge",
+          "type": "bytes32",
+          "internalType": "bytes32"
+        }
+      ],
+      "outputs": [],
+      "stateMutability": "nonpayable"
+    },
+    {
+      "type": "event",
+      "name": "Flightcheck",
+      "inputs": [
+        {
+          "name": "sender",
+          "type": "address",
+          "indexed": true,
+          "internalType": "address"
+        },
+        {
+          "name": "challenge",
+          "type": "bytes32",
+          "indexed": true,
+          "internalType": "bytes32"
+        },
+        {
+          "name": "chainId",
+          "type": "uint256",
+          "indexed": false,
+          "internalType": "uint256"
+        }
+      ],
+      "anonymous": false
+    }
+  ],
+  "runtimeBytecodeBytes": 139,
+  "expectedRuntimeBytecodeHash": "0x753157870ee9e692c7e35e0890fad801fd30fc4674a74a62a7526758da649dd0",
+  "eventTopic0": "0x4947ef22330e8e81cdedf82c33d366e9c942511f5edf79140686b33af9de7f33",
+  "eventSignature": "Flightcheck(address,bytes32,uint256)",
+  "pingSelector": "0x33d425c4",
+  "deployment": {
+    "chainId": 84532,
+    "chainName": "Base Sepolia",
+    "address": "0x2A6FC8182Bf9928Ef7517dA980dC79e8107c555A",
+    "txHash": "0xe4b4030081035c42eb2c7626cbb7b6953a0589c49785c03b5b7169c893de0b99",
+    "deployedAt": "2026-08-11T11:33:00Z",
+    "sourceVerified": true,
+    "explorer": "https://sepolia.basescan.org/address/0x2a6fc8182bf9928ef7517da980dc79e8107c555a",
+    "onchainRuntimeBytecodeHash": "0x753157870ee9e692c7e35e0890fad801fd30fc4674a74a62a7526758da649dd0",
+    "onchainHashMatchesPin": true
+  }
+}

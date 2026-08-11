@@ -1,0 +1,255 @@
+{
+  "schema": "keeperhub-flightcheck/manifest/v1",
+  "generatedAt": "2026-08-11T12:41:56.439Z",
+  "toolVersion": "0.1.0",
+  "proofSchema": "keeperhub-flightcheck/v1",
+  "canary": {
+    "address": "0x2A6FC8182Bf9928Ef7517dA980dC79e8107c555A",
+    "chainId": 84532,
+    "chainName": "Base Sepolia",
+    "abiVersion": "1",
+    "expectedRuntimeBytecodeHash": "0x753157870ee9e692c7e35e0890fad801fd30fc4674a74a62a7526758da649dd0",
+    "eventSignature": "Flightcheck(address,bytes32,uint256)",
+    "eventTopic0": "0x4947ef22330e8e81cdedf82c33d366e9c942511f5edf79140686b33af9de7f33",
+    "explorer": "https://sepolia.basescan.org/address/0x2a6fc8182bf9928ef7517da980dc79e8107c555a",
+    "sourceVerified": true,
+    "deployTxHash": "0xe4b4030081035c42eb2c7626cbb7b6953a0589c49785c03b5b7169c893de0b99",
+    "runtimeBytecodeBytes": 139,
+    "reproducibleBuild": true
+  },
+  "canonicalRun": {
+    "runId": "fc_308623d7-6be6-4d47-9e8c-f9010181389f",
+    "transactionHash": "0xb4098917d12030a249e9376217d765b715362c744dd23e9b03e0213253d452dc",
+    "transactionLink": "https://sepolia.basescan.org/tx/0xb4098917d12030a249e9376217d765b715362c744dd23e9b03e0213253d452dc",
+    "executionId": "exnn6k0y1ojnnvb8sa1fu",
+    "blockNumber": 45339897,
+    "gasUsed": "85465",
+    "challenge": "0x61b3cc48dd907bdfff36b62bf6b7faddc5adcaede477797ca0a035114a3fb4e2",
+    "sponsored": true,
+    "eventSender": "0xfd35ae935de7be93ffd585d6627268d833ed834c",
+    "transactionFrom": "0xdcf4bac4bd805948168ff63483bc493894a29613",
+    "transactionTo": "0x5af5194b4b0909eb978e3cf1e25333852277f07d",
+    "senderAssertion": "measured-equals-org-wallet-under-sponsored-true",
+    "agreement": {
+      "keeperhubReportsCompleted": true,
+      "publicTransactionLanded": true,
+      "independentEventMatches": true,
+      "sameTransactionHash": true,
+      "allLegsAgree": true
+    },
+    "totalMs": null,
+    "completedAt": "2026-08-11T11:34:42.919Z"
+  },
+  "runs": {
+    "total": 5,
+    "verified": 5,
+    "fastestVerifiedMs": 5588,
+    "slowestVerifiedMs": 10515,
+    "all": [
+      {
+        "runId": "fc_308623d7-6be6-4d47-9e8c-f9010181389f",
+        "transactionHash": "0xb4098917d12030a249e9376217d765b715362c744dd23e9b03e0213253d452dc",
+        "executionId": "exnn6k0y1ojnnvb8sa1fu",
+        "totalMs": null,
+        "completedAt": "2026-08-11T11:34:42.919Z"
+      },
+      {
+        "runId": "fc_c0dd200b-ca57-4d71-91c2-dcffa363615a",
+        "transactionHash": "0xfb878a7cd786210b57368d0299c4e80aa1306cd467e8e91335d30d7585e1e5d0",
+        "executionId": "6dfc6pvc7hd2s4w2nbkj2",
+        "totalMs": 9567,
+        "completedAt": "2026-08-11T12:01:49.424Z"
+      },
+      {
+        "runId": "fc_443cab7c-ca6b-4da0-9616-401a2b0ceb16",
+        "transactionHash": "0x1793377d34593fb1f7be7c05e3a9cc0b3c517e6c0c408683f25c5ff8947a212f",
+        "executionId": "ulaiz3n0nf4g38bwr458p",
+        "totalMs": 8110,
+        "completedAt": "2026-08-11T12:14:24.932Z"
+      },
+      {
+        "runId": "fc_add459bf-a00e-4d8d-b46f-94506247b0f6",
+        "transactionHash": "0xcd6e574e4e2229b862fa6e1022a980d251857e681f3ce501dc7a53bad66132ec",
+        "executionId": "t3fa0n7xnqe5rxp8wfel6",
+        "totalMs": 10515,
+        "completedAt": "2026-08-11T12:25:23.920Z"
+      },
+      {
+        "runId": "fc_871f3a1c-27db-4e7e-913e-51f78c662dcb",
+        "transactionHash": "0x415c661ccf58a89e2e8a4a93048c40c4ed6d7675f6ab48b610c8f745f5c1b971",
+        "executionId": "xua1gvv62zaydnuprvc2w",
+        "totalMs": 5588,
+        "completedAt": "2026-08-11T12:30:46.654Z"
+      }
+    ]
+  },
+  "recovery": {
+    "scenario": "post-submit response loss, recovered by idempotency-key replay",
+    "pass": true,
+    "broadcastRequestsSent": 2,
+    "transactionsOnchain": 1,
+    "idempotentReplay": true,
+    "transactionHash": "0x01b89a6c343ec67a71f53716e92b6b89906bdbdbb5877685657315a8678ac93d",
+    "method": "eth_getLogs filtered by canary address and the run's unique challenge topic"
+  },
+  "benchmark": {
+    "schema": "keeperhub-flightcheck/benchmark/v1",
+    "title": "Agent onboarding benchmark",
+    "date": "2026-08-11",
+    "method": "Two isolated autonomous agents, each starting from the same prerequisite state: a populated .env with a valid kh_ organisation key, on Base Sepolia, with no prior KeeperHub knowledge in context. The baseline arm was given only public KeeperHub documentation and was explicitly forbidden from reading this repository. The treatment arm was given only the repository's README. Both were required to reach the same finish line: a transaction where KeeperHub's execution record, a public Base Sepolia receipt, and a decoded event all agree, verified by the agent itself rather than taken from tool output.",
+    "notHumanStudy": "Agents, not humans. This is an agent onboarding benchmark and is never described as a human UX study. Agents read faster than people and do not get frustrated, so the absolute times are not human times. The comparison between arms is the measurement; the absolute numbers are not.",
+    "arms": [
+      {
+        "name": "Baseline",
+        "given": "public KeeperHub docs only",
+        "timeToFirstTx": "4m 28s",
+        "timeToVerified": "5m 25s",
+        "commands": 15,
+        "docsOpened": "11 (7 returned content, 4 were 404s)",
+        "failedAttempts": 6,
+        "transactions": 1,
+        "reachedGoal": true,
+        "transactionHash": "0x7c5876d4610c341d61262ceed0e77c7373a47938105a9d9a9d15166ebc479776",
+        "executionId": "ls1auzqql7mslxt8qf8uq",
+        "operation": "WETH9.approve, chosen by the agent as a zero-value write",
+        "log": "evidence/benchmark/baseline-run.md"
+      },
+      {
+        "name": "Flightcheck",
+        "given": "repository README only",
+        "timeToFirstTx": "1m 48s",
+        "timeToVerified": "2m 49s",
+        "commands": 2,
+        "docsOpened": "1 (README.md)",
+        "failedAttempts": 0,
+        "transactions": 1,
+        "reachedGoal": true,
+        "transactionHash": "0x415c661ccf58a89e2e8a4a93048c40c4ed6d7675f6ab48b610c8f745f5c1b971",
+        "executionId": "xua1gvv62zaydnuprvc2w",
+        "operation": "the pinned canary's ping(bytes32)",
+        "log": "evidence/benchmark/flightcheck-run.md"
+      },
+      {
+        "name": "Recovery",
+        "given": "a real post-submit response loss, injected",
+        "timeToFirstTx": "n/a, the transaction already existed",
+        "timeToVerified": "one --resume invocation",
+        "commands": 1,
+        "docsOpened": "0",
+        "failedAttempts": "1 by construction, the injected loss",
+        "transactions": 1,
+        "reachedGoal": true,
+        "note": "Two broadcast requests reached KeeperHub. One transaction exists onchain, counted by eth_getLogs on the run's unique challenge topic.",
+        "log": "evidence/recovery/fault-injection.log"
+      }
+    ],
+    "deltas": {
+      "timeToVerified": "5m 25s to 2m 49s, roughly halved",
+      "commands": "15 to 2",
+      "docsOpened": "11 to 1",
+      "failedAttempts": "6 to 0"
+    },
+    "caveat": "Small sample: one run per arm, both by capable agents. The baseline agent performed unusually well, chose a sensible zero-value operation on its own, and wrote its own keccak implementation to verify the event independently. A less capable agent, or a human, would be slower in the baseline arm and roughly as fast in the treatment arm, so this comparison understates rather than overstates the difference. The baseline arm also solved a slightly different problem: it chose its own contract call, while the treatment arm's target was fixed.",
+    "notMeasured": [
+      "human onboarding time, in either arm",
+      "repeat runs for variance",
+      "a cold container, both arms ran on the same configured machine",
+      "the non-sponsored execution path"
+    ],
+    "priorRun": {
+      "note": "An earlier treatment run was executed before README.md existed, so the agent had only --help to work from. It reached a first transaction in 58s and full independent verification in 2m 16s across 3 commands. It is not counted in the comparison above because its starting condition differed from the baseline arm's, but it is recorded here because it is a harder condition than a real user faces and it found three real defects, all since fixed.",
+      "defectsFound": [
+        "the proof capsule was written over the run record, so status reported a successful run as never having happened",
+        "--resume on a completed run crashed with an unhandled error",
+        "--json on a preflight emitted only two fields"
+      ]
+    },
+    "defectsFoundByTreatmentArm": {
+      "note": "The treatment agent was asked to review as well as measure. It found six further defects, all outside the proof path, and all fixed before publication.",
+      "items": [
+        "README claimed the manifest summarised every verified run, but the manifest needed a separate command; the CLI now regenerates it after a verified run",
+        "CLAIMS.md froze a failure-code count that the generated docs had already moved past; the claim now cites the generated artifact instead of a number",
+        "unknown flags such as --exec ran a silent preflight and exited 0; unknown flags and arguments are now rejected with exit 64",
+        "--resume with no run id silently degraded to a preflight; it now errors and points at status",
+        "a run record predating the capsule fix reported a stale stage; the final stage is now persisted",
+        "npm's banner broke piping --json into jq; the README now shows npm run --silent"
+      ]
+    }
+  },
+  "stateMachine": [
+    {
+      "stage": "START",
+      "label": "Run started",
+      "independentOfKeeperHub": false
+    },
+    {
+      "stage": "AUTHENTICATED",
+      "label": "Authenticated",
+      "independentOfKeeperHub": false
+    },
+    {
+      "stage": "WALLET_RESOLVED",
+      "label": "Organisation wallet resolved",
+      "independentOfKeeperHub": false
+    },
+    {
+      "stage": "CHAIN_RESOLVED",
+      "label": "Chain available",
+      "independentOfKeeperHub": false
+    },
+    {
+      "stage": "CANARY_VERIFIED",
+      "label": "Canary bytecode verified",
+      "independentOfKeeperHub": true
+    },
+    {
+      "stage": "SIMULATION_PASSED",
+      "label": "Simulation passed",
+      "independentOfKeeperHub": false
+    },
+    {
+      "stage": "EXECUTION_PREPARED",
+      "label": "Request persisted",
+      "independentOfKeeperHub": false
+    },
+    {
+      "stage": "EXECUTION_CREATED",
+      "label": "Execution created",
+      "independentOfKeeperHub": false
+    },
+    {
+      "stage": "BROADCAST_OBSERVED",
+      "label": "Transaction observed",
+      "independentOfKeeperHub": false
+    },
+    {
+      "stage": "RECEIPT_CONFIRMED",
+      "label": "Receipt confirmed",
+      "independentOfKeeperHub": false
+    },
+    {
+      "stage": "EVENT_VERIFIED",
+      "label": "Flightcheck event verified",
+      "independentOfKeeperHub": true
+    },
+    {
+      "stage": "PROOF_WRITTEN",
+      "label": "Proof written",
+      "independentOfKeeperHub": false
+    }
+  ],
+  "failureCodes": 39,
+  "tests": {
+    "command": "npm test",
+    "tests": 80,
+    "suites": 16,
+    "pass": 80,
+    "fail": 0,
+    "skipped": null,
+    "durationMs": 18618.710667,
+    "network": "none required",
+    "note": "Unit and state-machine tests. The live fault-injection acceptance test is separate and is recorded in evidence/recovery/.",
+    "capturedFrom": "npm test",
+    "file": "evidence/test-run.json"
+  }
+}

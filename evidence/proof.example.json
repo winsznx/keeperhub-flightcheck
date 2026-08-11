@@ -1,0 +1,92 @@
+{
+  "schema": "keeperhub-flightcheck/v1",
+  "toolVersion": "0.1.0-spike",
+  "runId": "fc_308623d7-6be6-4d47-9e8c-f9010181389f",
+  "outcome": "verified",
+  "stageReached": "PROOF_WRITTEN",
+  "stoppedAt": null,
+  "createdAt": "2026-08-11T11:34:39.116Z",
+  "completedAt": "2026-08-11T11:34:42.919Z",
+  "chain": {
+    "chainId": 84532,
+    "name": "Base Sepolia",
+    "isTestnet": true
+  },
+  "wallet": {
+    "orgWallet": "0xfd35ae935de7be93ffd585d6627268d833ed834c",
+    "signerMode": "eoa"
+  },
+  "canary": {
+    "address": "0x2A6FC8182Bf9928Ef7517dA980dC79e8107c555A",
+    "abiVersion": "1",
+    "expectedRuntimeBytecodeHash": "0x753157870ee9e692c7e35e0890fad801fd30fc4674a74a62a7526758da649dd0",
+    "observedRuntimeBytecodeHash": "0x753157870ee9e692c7e35e0890fad801fd30fc4674a74a62a7526758da649dd0",
+    "match": true
+  },
+  "challenge": "0x61b3cc48dd907bdfff36b62bf6b7faddc5adcaede477797ca0a035114a3fb4e2",
+  "idempotency": {
+    "key": "388772c131339aa2a3dc1eba959fa02acca651bf6935e171ac7ca422dc905a5f",
+    "requestBodyHash": "sha256:4e729070f3d7d95ed52b797177d7ff8a588892e8b21fa111fdd62cc80afff846",
+    "replayed": false,
+    "attempts": 1,
+    "conflicts": 0
+  },
+  "simulation": {
+    "passed": true,
+    "wouldRevert": false,
+    "from": "0xfd35ae935de7be93ffd585d6627268d833ed834c",
+    "to": "0x2A6FC8182Bf9928Ef7517dA980dC79e8107c555A",
+    "gasEstimate": "23929"
+  },
+  "execution": {
+    "id": "exnn6k0y1ojnnvb8sa1fu",
+    "serverStatus": "completed",
+    "normalizedState": "COMPLETED",
+    "sponsored": true,
+    "pollCount": 1,
+    "terminal": true,
+    "httpStatus": 202,
+    "transactionHashInPostBody": false
+  },
+  "transaction": {
+    "hash": "0xb4098917d12030a249e9376217d765b715362c744dd23e9b03e0213253d452dc",
+    "link": "https://sepolia.basescan.org/tx/0xb4098917d12030a249e9376217d765b715362c744dd23e9b03e0213253d452dc"
+  },
+  "keeperhubReceipt": {
+    "verified": true,
+    "receiptStatus": "success",
+    "blockNumber": 45339897,
+    "gasUsed": "85465"
+  },
+  "independentVerification": {
+    "rpcOrigin": "https://sepolia.base.org",
+    "rpcChainId": 84532,
+    "receiptStatusHex": "0x1",
+    "blockNumber": 45339897,
+    "transactionFrom": "0xdcf4bac4bd805948168ff63483bc493894a29613",
+    "transactionTo": "0x5af5194b4b0909eb978e3cf1e25333852277f07d",
+    "event": {
+      "emitter": "0x2a6fc8182bf9928ef7517da980dc79e8107c555a",
+      "topic0": "0x4947ef22330e8e81cdedf82c33d366e9c942511f5edf79140686b33af9de7f33",
+      "sender": "0xfd35ae935de7be93ffd585d6627268d833ed834c",
+      "challenge": "0x61b3cc48dd907bdfff36b62bf6b7faddc5adcaede477797ca0a035114a3fb4e2",
+      "chainId": 84532
+    },
+    "challengeMatches": true,
+    "chainIdMatches": true,
+    "emittedByPinnedCanary": true,
+    "senderAssertion": "measured-equals-org-wallet-under-sponsored-true"
+  },
+  "agreement": {
+    "keeperhubReportsCompleted": true,
+    "publicTransactionLanded": true,
+    "independentEventMatches": true,
+    "sameTransactionHash": true,
+    "allLegsAgree": true
+  },
+  "notes": [
+    "Gas was sponsored. The org wallet held 0 ETH and never paid.",
+    "Transaction from-address is a relayer, top-level to is a router contract. msg.sender at the canary is still the org wallet.",
+    "Verifying by inspecting the org wallet's explorer txlist would have found nothing."
+  ]
+}

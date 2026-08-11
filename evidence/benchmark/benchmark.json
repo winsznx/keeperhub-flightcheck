@@ -1,0 +1,84 @@
+{
+  "schema": "keeperhub-flightcheck/benchmark/v1",
+  "title": "Agent onboarding benchmark",
+  "date": "2026-08-11",
+  "method": "Two isolated autonomous agents, each starting from the same prerequisite state: a populated .env with a valid kh_ organisation key, on Base Sepolia, with no prior KeeperHub knowledge in context. The baseline arm was given only public KeeperHub documentation and was explicitly forbidden from reading this repository. The treatment arm was given only the repository's README. Both were required to reach the same finish line: a transaction where KeeperHub's execution record, a public Base Sepolia receipt, and a decoded event all agree, verified by the agent itself rather than taken from tool output.",
+  "notHumanStudy": "Agents, not humans. This is an agent onboarding benchmark and is never described as a human UX study. Agents read faster than people and do not get frustrated, so the absolute times are not human times. The comparison between arms is the measurement; the absolute numbers are not.",
+  "arms": [
+    {
+      "name": "Baseline",
+      "given": "public KeeperHub docs only",
+      "timeToFirstTx": "4m 28s",
+      "timeToVerified": "5m 25s",
+      "commands": 15,
+      "docsOpened": "11 (7 returned content, 4 were 404s)",
+      "failedAttempts": 6,
+      "transactions": 1,
+      "reachedGoal": true,
+      "transactionHash": "0x7c5876d4610c341d61262ceed0e77c7373a47938105a9d9a9d15166ebc479776",
+      "executionId": "ls1auzqql7mslxt8qf8uq",
+      "operation": "WETH9.approve, chosen by the agent as a zero-value write",
+      "log": "evidence/benchmark/baseline-run.md"
+    },
+    {
+      "name": "Flightcheck",
+      "given": "repository README only",
+      "timeToFirstTx": "1m 48s",
+      "timeToVerified": "2m 49s",
+      "commands": 2,
+      "docsOpened": "1 (README.md)",
+      "failedAttempts": 0,
+      "transactions": 1,
+      "reachedGoal": true,
+      "transactionHash": "0x415c661ccf58a89e2e8a4a93048c40c4ed6d7675f6ab48b610c8f745f5c1b971",
+      "executionId": "xua1gvv62zaydnuprvc2w",
+      "operation": "the pinned canary's ping(bytes32)",
+      "log": "evidence/benchmark/flightcheck-run.md"
+    },
+    {
+      "name": "Recovery",
+      "given": "a real post-submit response loss, injected",
+      "timeToFirstTx": "n/a, the transaction already existed",
+      "timeToVerified": "one --resume invocation",
+      "commands": 1,
+      "docsOpened": "0",
+      "failedAttempts": "1 by construction, the injected loss",
+      "transactions": 1,
+      "reachedGoal": true,
+      "note": "Two broadcast requests reached KeeperHub. One transaction exists onchain, counted by eth_getLogs on the run's unique challenge topic.",
+      "log": "evidence/recovery/fault-injection.log"
+    }
+  ],
+  "deltas": {
+    "timeToVerified": "5m 25s to 2m 49s, roughly halved",
+    "commands": "15 to 2",
+    "docsOpened": "11 to 1",
+    "failedAttempts": "6 to 0"
+  },
+  "caveat": "Small sample: one run per arm, both by capable agents. The baseline agent performed unusually well, chose a sensible zero-value operation on its own, and wrote its own keccak implementation to verify the event independently. A less capable agent, or a human, would be slower in the baseline arm and roughly as fast in the treatment arm, so this comparison understates rather than overstates the difference. The baseline arm also solved a slightly different problem: it chose its own contract call, while the treatment arm's target was fixed.",
+  "notMeasured": [
+    "human onboarding time, in either arm",
+    "repeat runs for variance",
+    "a cold container, both arms ran on the same configured machine",
+    "the non-sponsored execution path"
+  ],
+  "priorRun": {
+    "note": "An earlier treatment run was executed before README.md existed, so the agent had only --help to work from. It reached a first transaction in 58s and full independent verification in 2m 16s across 3 commands. It is not counted in the comparison above because its starting condition differed from the baseline arm's, but it is recorded here because it is a harder condition than a real user faces and it found three real defects, all since fixed.",
+    "defectsFound": [
+      "the proof capsule was written over the run record, so status reported a successful run as never having happened",
+      "--resume on a completed run crashed with an unhandled error",
+      "--json on a preflight emitted only two fields"
+    ]
+  },
+  "defectsFoundByTreatmentArm": {
+    "note": "The treatment agent was asked to review as well as measure. It found six further defects, all outside the proof path, and all fixed before publication.",
+    "items": [
+      "README claimed the manifest summarised every verified run, but the manifest needed a separate command; the CLI now regenerates it after a verified run",
+      "CLAIMS.md froze a failure-code count that the generated docs had already moved past; the claim now cites the generated artifact instead of a number",
+      "unknown flags such as --exec ran a silent preflight and exited 0; unknown flags and arguments are now rejected with exit 64",
+      "--resume with no run id silently degraded to a preflight; it now errors and points at status",
+      "a run record predating the capsule fix reported a stale stage; the final stage is now persisted",
+      "npm's banner broke piping --json into jq; the README now shows npm run --silent"
+    ]
+  }
+}
