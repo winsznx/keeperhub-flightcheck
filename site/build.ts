@@ -1,10 +1,13 @@
 /**
  * Builds the static judge proof page from evidence/manifest.json.
  *
- * Every factual value on the page is read from the manifest, which is itself generated from the
- * proof capsules. Nothing is typed by hand, so the page cannot drift from the evidence. If a
- * value is missing from the manifest it renders as "not measured" rather than as a plausible
- * number.
+ * Every NUMBER and identifier on the page is read from the manifest, which is itself generated
+ * from the proof capsules, so no metric can be hand-typed or drift from the evidence. If a value
+ * is missing from the manifest it renders as "not measured" rather than as a plausible number.
+ *
+ * Prose is not generated. The findings list below is hardcoded, which means a retraction has to
+ * be propagated here by hand. An audit caught exactly that failure: a withdrawn finding stayed
+ * live on this page after the ledger had struck it.
  *
  * Design tokens follow internal/design.md: zinc scale, one ember accent used only as a badge,
  * 36px cards, hairline borders instead of shadows, one type family.
@@ -19,7 +22,7 @@ interface Manifest {
   toolVersion: string;
   canary: Record<string, unknown>;
   canonicalRun: Record<string, unknown> | null;
-  runs: { total: number; verified: number; fastestVerifiedMs: number | null; slowestVerifiedMs: number | null; all: Array<Record<string, unknown>> };
+  runs: { total: number; verified: number; endToEndRuns: number; fastestEndToEndMs: number | null; slowestEndToEndMs: number | null; all: Array<Record<string, unknown>> };
   recovery: Record<string, unknown> | null;
   benchmark: Record<string, unknown> | null;
   stateMachine: Array<{ stage: string; label: string; independentOfKeeperHub: boolean }>;
@@ -316,8 +319,8 @@ const html = `<!doctype html>
       <li><strong><code class="mono">unconfirmed</code> is missing from the Direct Execution status list</strong> while another page on the same site documents it as non-terminal. A client with a failing default branch reports a false failure; one that retries can duplicate a transaction.</li>
       <li><strong><code class="mono">gasUsedWei</code> carries gas units, not wei</strong>, byte-equal to <code class="mono">receipts[0].gasUsed</code>.</li>
       <li><strong>A simulation passed while the payer held zero balance.</strong> A green simulation is not proof a broadcast can land.</li>
-      <li><strong>The canonical <code class="mono">llms.txt</code> omits the quickstart, the first-verified-transaction guide and the headless onboarding page</strong>, all of which return 200. The agent-facing index does not mention how to execute onchain.</li>
-      <li><strong><code class="mono">/api/openapi</code> contains no core REST path</strong> and no bearer security scheme, though it is advertised as the machine-readable schema for the REST API.</li>
+      <li><strong>One finding was withdrawn before publication.</strong> The agent-facing <code class="mono">llms.txt</code> index omitted the entire onboarding path when measured on 2026-08-10, and had been fixed upstream by the time we re-ran the reproduction on 2026-08-11. The teardown records both measurements rather than quietly dropping it.</li>
+      <li><strong><code class="mono">/api/openapi</code> contains no core REST path</strong> and no bearer security scheme, though it is advertised as the machine-readable schema for the REST API. Re-verified on 2026-08-11: 117 paths, every one a published-workflow call.</li>
     </ul>
     <div class="btns"><a class="btn ghost" href="${REPO_URL}/blob/main/docs/onboarding-teardown.md">Read the teardown</a></div>
   </div>
@@ -363,7 +366,7 @@ npm run flightcheck -- --execute</pre>
   <div class="wrap">
     <div class="mono">flightcheck ${esc(m.toolVersion)} · manifest generated ${esc(m.generatedAt)}</div>
     <p style="margin-top:8px">
-      Every figure on this page is generated from <a href="${REPO_URL}/blob/main/evidence/manifest.json">evidence/manifest.json</a>,
+      Every number and identifier on this page is generated from <a href="${REPO_URL}/blob/main/evidence/manifest.json">evidence/manifest.json</a>,
       which is built from the proof capsules in <a href="${REPO_URL}/tree/main/evidence/runs">evidence/runs/</a>.
       Claims are tracked against their evidence in <a href="${REPO_URL}/blob/main/CLAIMS.md">CLAIMS.md</a>.
     </p>

@@ -14,7 +14,9 @@ Proof levels:
 | **fixture** | a parser or state-machine test against a captured real response shape, not a live reproduction |
 | **observed** | seen on our runs, not guaranteed to generalise |
 
-Last verified: 2026-08-11.
+Last verified: 2026-08-11, after an external adversarial audit. Rows 8 and 35 were downgraded or
+withdrawn as a result, and rows 4, 12 and 14 were narrowed to what the evidence actually shows.
+The audit report is in `internal/audit-report.md`.
 
 ---
 
@@ -25,7 +27,8 @@ Last verified: 2026-08-11.
 | 1 | KeeperHub executed a real transaction on Base Sepolia from a fresh environment | onchain | tx [`0xb4098917…d452dc`](https://sepolia.basescan.org/tx/0xb4098917d12030a249e9376217d765b715362c744dd23e9b03e0213253d452dc), block 45339897 |
 | 2 | That transaction corresponds to KeeperHub execution `exnn6k0y1ojnnvb8sa1fu` | live-api | `evidence/runs/`, status response retained in `internal/seam-raw/` |
 | 3 | The transaction emitted `Flightcheck(sender, challenge, chainId)` from the pinned canary | onchain | receipt log, topic0 `0x4947ef22…de7f33`, emitter `0x2a6f…555a` |
-| 4 | The challenge in that event is the one generated before the request was sent | onchain | challenge `0x61b3cc48…3fb4e2` appears in the capsule and as topic 3 of the log |
+| 4 | The challenge in the event is byte-identical to the one in the capsule | onchain | challenge `0x61b3cc48…3fb4e2` is topic 3 of the log |
+| 4a | That challenge was generated before the request was sent | code inspection | `machine.ts` mints it at record construction, before any network call. A public node cannot establish ordering, only that the value is present. The security property that matters, that 32 fresh random bytes cannot appear in a pre-existing transaction, does not depend on this row |
 | 5 | All three proof legs agreed on that run | onchain + live-api | `agreement.allLegsAgree: true` in the capsule |
 
 ## The canary
@@ -34,7 +37,7 @@ Last verified: 2026-08-11.
 |---|---|---|---|
 | 6 | The canary moves no value and writes no storage | automated | `contracts/test/`, 5 tests including a non-payable check and a storage-slot check |
 | 7 | Its runtime bytecode hash is `0x753157…49dd0` and matches onchain | onchain | `cast code … \| cast keccak`, compared every run at `CANARY_VERIFIED` |
-| 8 | That hash was committed before deployment | measured | `evidence/canary-build.json`, written pre-deploy with `address: null` |
+| 8 | ~~That hash was committed before deployment~~ **DOWNGRADED.** The file was written before deployment on the build machine, but the public repo is a single squashed commit made after, so no public artifact establishes the ordering | unverifiable | An audit checked `git log -p` and found no commit containing the pre-deploy state. Claim 9 makes this nearly redundant: the build reproduces from source and matches the deployed code, so the pin is checkable regardless of when it was written |
 | 9 | The build is byte-reproducible | measured | hashed across two clean `forge clean && forge build` cycles; solc, evm version, optimizer and CBOR metadata all pinned |
 | 10 | The source is verified on Basescan | onchain | [contract page](https://sepolia.basescan.org/address/0x2a6fc8182bf9928ef7517da980dc79e8107c555a) |
 | 11 | Flightcheck fails closed on a bytecode mismatch | automated | `machine.test.ts`, "wrong bytecode stops the run before KeeperHub is asked to call it" |
@@ -43,9 +46,9 @@ Last verified: 2026-08-11.
 
 | # | Claim | Level | Evidence |
 |---|---|---|---|
-| 12 | Losing the broadcast response does not create a second transaction | onchain + measured | `evidence/recovery/fault-injection.json`: 2 broadcast requests sent, 1 log onchain for the run's challenge |
+| 12 | On the observed run, losing the broadcast response produced exactly one *successfully executed* transaction | onchain + measured, n=1 | `evidence/recovery/fault-injection.json`: 2 broadcast requests sent, 1 log onchain for the run's challenge. **Scope:** `eth_getLogs` only returns logs from successful transactions, so a duplicate that reverted or ran out of gas would be invisible to this count. And KeeperHub's idempotency is a third-party guarantee observed once, not a property we can enforce |
 | 13 | Recovery works by replaying the persisted key, and KeeperHub marks it `idempotentReplay` | live-api | same file, `recovery.idempotentReplay: true` |
-| 14 | "Exactly one transaction" is counted from the chain, not from our bookkeeping | onchain | `eth_getLogs` filtered to the canary address and the run's unique challenge topic |
+| 14 | The count comes from the chain, not from our bookkeeping | onchain | `eth_getLogs` filtered to the canary address and the run's unique challenge topic. An external audit re-ran this across the canary's entire history from its deploy block: 7 events, 7 distinct challenges, none repeated |
 | 15 | The request and key are persisted and fsynced before the request is sent | automated | `runstore.ts` fsyncs; `machine.test.ts` "the request is persisted before the broadcast is attempted" |
 | 16 | A transport retry never mints a new idempotency key | automated | `machine.test.ts` "a lost response triggers one replay of the same key, not a new request" |
 | 17 | A run older than the 24-hour replay window refuses to resume | automated | `unit.test.ts` "refuses to resume past the 24 hour replay window" |
@@ -72,7 +75,7 @@ Last verified: 2026-08-11.
 | 28 | Redaction catches secret shapes that were never registered | automated | `unit.test.ts` "catches secret shapes nobody registered" |
 | 29 | Values we publish on purpose are not mangled by the redactor | automated | `unit.test.ts` "does not mangle values we publish on purpose" |
 | 30 | Zero runtime dependencies | measured | `package.json` `dependencies: {}`; only `typescript` and `@types/node` as dev deps |
-| 30b | The hand-written keccak256 is byte-identical to Foundry's across 60 cases spanning every rate boundary | measured | `evidence/keccak-differential.json` |
+| 30b | The hand-written keccak256 is byte-identical to independent implementations across every rate boundary | measured | `evidence/keccak-differential.json`, 60 cases vs Foundry. An external audit independently ran 433 vectors against pycryptodome and eth_hash with zero mismatches |
 | 30a | `evidence/manifest.json` summarises every verified run and is regenerated automatically after each one | automated | `cli.ts` calls the manifest generator on a verified outcome; `npm run evidence` regenerates it manually |
 
 ## Findings reported about KeeperHub

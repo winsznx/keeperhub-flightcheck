@@ -160,11 +160,12 @@ export function buildCapsule(result: RunResult, rpcUrl: string): ProofCapsule {
           chainIdMatches,
           emittedByPinnedCanary,
           senderAssertion:
-            status?.sponsored === true
-              ? result.senderMatchesOrgWallet
-                ? "asserted-and-matched-under-sponsored-true"
-                : "asserted-and-failed-under-sponsored-true"
-              : "recorded-not-asserted",
+            result.senderMatchesOrgWallet === null
+              ? "org-wallet-unknown-not-asserted"
+              : result.senderMatchesOrgWallet
+                ? "asserted-and-matched"
+                : "asserted-and-failed",
+          sponsoredReportedByKeeperHub: status?.sponsored ?? null,
           senderMatchesOrgWallet: result.senderMatchesOrgWallet,
           note: "Verified by transaction hash, then receipt, then decoded log. A sponsored execution leaves the org wallet's nonce and balance untouched, so wallet-level checks would find nothing.",
         }
@@ -173,7 +174,13 @@ export function buildCapsule(result: RunResult, rpcUrl: string): ProofCapsule {
     agreement: {
       keeperhubReportsCompleted: result.normalizedState === "COMPLETED",
       publicTransactionLanded: receipt?.status === "0x1",
-      independentEventMatches: challengeMatches && chainIdMatches && emittedByPinnedCanary,
+      // The sender is part of what makes the event ours rather than merely well-formed, so it
+      // belongs in the agreement rather than beside it.
+      independentEventMatches:
+        challengeMatches &&
+        chainIdMatches &&
+        emittedByPinnedCanary &&
+        result.senderMatchesOrgWallet === true,
       sameTransactionHash:
         keeperhubHash !== null && independentHash !== null && keeperhubHash === independentHash,
       allLegsAgree: result.outcome === "verified",

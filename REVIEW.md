@@ -68,7 +68,9 @@ bytecode pin  0x753157870ee9e692c7e35e0890fad801fd30fc4674a74a62a7526758da649dd0
 sponsored     true
 ```
 
-5 verified runs recorded in `evidence/runs/`, fastest 5.6s, slowest 10.5s end to end.
+5 verified runs recorded in `evidence/runs/`. Of those, 4 are cold end-to-end runs: fastest 8.1s,
+slowest 10.5s. The fifth is a resumed run and is excluded from timing, since it skips simulation
+and re-reads an already-mined transaction. An audit caught that contamination.
 
 ## 5. Benchmark
 
@@ -292,8 +294,42 @@ Nothing in that path requires trusting the repo, the page, or KeeperHub.
 
 ## 18. Independent adversarial audit
 
-A fresh agent was given only the public repository, the public proof page, and public chain data,
-with no credentials and no access to the working copy or the strategy notes. It was told to
-falsify, not to be helpful.
+A fresh agent was given only the public repository, the public proof page, and public chain data.
+No credentials, no working copy, no strategy notes. Told to falsify rather than help. 66 tool
+calls: it cloned the repo, rebuilt the contract twice, swept the canary's entire event history,
+cross-checked keccak against two independent implementations, and built a stub harness to attack
+the state machine.
 
-Result recorded in `internal/audit-report.md`.
+Its verdict:
+
+> Yes. "KeeperHub executed a real transaction on Base Sepolia and you can verify it without
+> credentials or trusting this repo" is true, and I verified every link of it myself with no API
+> key. What does not survive is the framing around it.
+
+**Attacks that failed:** the transaction and receipt, topic0, the bytecode pin, the reproducible
+build, the keccak implementation (433 vectors, zero mismatches), zero dependencies, the site's
+numbers against the manifest, and the marketing sweep, which came back empty.
+
+**It found a real security hole.** The `msg.sender == org wallet` assertion was gated on
+`status.sponsored === true`, a value KeeperHub supplies. Omitting one optional boolean skipped the
+only check binding the onchain event to the organisation's identity. The auditor reached
+`PROOF_WRITTEN` with a `0xdeadbeef` sender and `allLegsAgree: true`. Fixed: the assertion now runs
+whenever the org wallet is known, fails closed, and is part of `independentEventMatches`. Three
+regression tests added, one of which omits `sponsored` and asserts the run still fails.
+
+**It found a real honesty failure.** I withdrew the `llms.txt` finding in `CLAIMS.md` and the
+teardown and left it standing in the README and on the live site, which is precisely the failure
+a claims ledger exists to prevent. Fixed in both.
+
+**Everything else it raised, and what happened:** two tests asserted branches they never reached,
+including the one covering the fail-open assertion; the path-traversal test passed whether or not
+the guard existed; `npm run test:live` was a label with nothing behind it; `scrub` was not a fixed
+point; "exactly one transaction" was stronger than a log filter can support; the benchmark caveat
+was materially smaller than the real caveat; `canary-build.json` could not prove the ordering it
+claimed; the README's `forge build` recipe failed on a fresh clone and swallowed the failure;
+`fastestVerifiedMs` was a resumed run presented beside cold ones; one onchain transaction had no
+evidence file. All fixed or downgraded. Three findings were accepted and not fixed, with reasons.
+
+Full report and the disposition of every finding: `internal/audit-report.md`.
+
+The audit changed the product, not just the wording. That is the reason to run one.

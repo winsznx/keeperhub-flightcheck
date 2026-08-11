@@ -210,8 +210,15 @@ describe("run store", () => {
     const dir = mkdtempSync(resolve(tmpdir(), "fc-store-"));
     try {
       const store = new RunStore(dir);
-      for (const bad of ["../../etc/passwd", "fc_../x", "not-a-run-id", ""]) {
-        assert.throws(() => store.load(bad), /FC_RESUME_NOT_FOUND|Error/);
+      for (const bad of ["../../etc/passwd", "fc_../x", "not-a-run-id", "", "fc_" + "a".repeat(36)]) {
+        assert.throws(
+          () => store.load(bad),
+          // Specifically the guard, not merely "something threw". The previous version accepted
+          // any Error, so a missing guard would have read the file and passed on a JSON parse
+          // failure instead.
+          (e: unknown) => e instanceof FlightcheckError && e.code === "FC_RESUME_NOT_FOUND",
+          `run id ${JSON.stringify(bad)} must be rejected by the guard`,
+        );
       }
     } finally {
       rmSync(dir, { recursive: true, force: true });
@@ -283,6 +290,17 @@ describe("secret containment", () => {
     clearSecrets();
   });
 
+  test("scrub is a fixed point, so its own output passes its own leak detector", () => {
+    clearSecrets();
+    const secret = "REGISTEREDSECRET_abcdefghijklmnopqrstuvwxyz";
+    registerSecret(secret);
+    const text = `full=${secret} truncated=${secret.slice(0, 12)} shorter=${secret.slice(0, 9)}`;
+    const once = scrub(text);
+    assert.deepEqual(findLeaks(once), [], "one pass must remove every prefix");
+    assert.equal(scrub(once), once, "scrubbing twice must change nothing");
+    clearSecrets();
+  });
+
   test("catches secret shapes nobody registered", () => {
     clearSecrets();
     assert.ok(!scrub("Bearer kh_abcdefghijklmnop").includes("kh_abcdefghijklmnop"));
@@ -321,6 +339,9 @@ describe("secret containment", () => {
     assert.equal(safeRpcOrigin("https://eth-sepolia.g.alchemy.com/v2/SECRETKEY"), "redacted");
     assert.equal(safeRpcOrigin("https://node.example/?apikey=SECRET"), "redacted");
     assert.equal(safeRpcOrigin("https://user:pass@node.example"), "redacted");
+    // Some providers key by subdomain, so a bare origin is not automatically safe.
+    assert.equal(safeRpcOrigin("https://MYSECRETAPIKEY123456.rpc.example.com"), "redacted");
+    assert.equal(safeRpcOrigin("https://base-sepolia-rpc.publicnode.com"), "https://base-sepolia-rpc.publicnode.com");
   });
 });
 

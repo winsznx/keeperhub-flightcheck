@@ -20,6 +20,8 @@ interface CapsuleLike {
   completedAt: string;
   challenge: string;
   transaction: { hash: string; link: string } | null;
+  simulation: Record<string, unknown> | null;
+  idempotency: { replayed?: boolean } | null;
   execution: { id: string; sponsored: boolean | null; normalizedState: string } | null;
   keeperhubReceipt: { blockNumber: number; gasUsed: string } | null;
   independentVerification: Record<string, unknown> | null;
@@ -58,7 +60,17 @@ function main(): void {
     resolve(REPO_ROOT, "evidence", "benchmark", "benchmark.json"),
   );
 
-  const durations = verified
+  /*
+   * Only count runs that actually did the whole thing.
+   *
+   * A resumed run skips simulation and re-reads a transaction that is already mined, so its
+   * total is not an end-to-end figure. An audit found a 5.6s "fastest run" that was a replay
+   * sitting next to genuine cold runs.
+   */
+  const endToEnd = verified.filter(
+    (c) => c.idempotency?.replayed !== true && c.simulation !== null,
+  );
+  const durations = endToEnd
     .map((c) => c.timingsMs?.total)
     .filter((n): n is number => typeof n === "number" && n > 0);
 
@@ -108,8 +120,11 @@ function main(): void {
     runs: {
       total: capsules.length,
       verified: verified.length,
-      fastestVerifiedMs: durations.length ? Math.min(...durations) : null,
-      slowestVerifiedMs: durations.length ? Math.max(...durations) : null,
+      endToEndRuns: endToEnd.length,
+      fastestEndToEndMs: durations.length ? Math.min(...durations) : null,
+      slowestEndToEndMs: durations.length ? Math.max(...durations) : null,
+      timingNote:
+        "Timings cover cold end-to-end runs only. Resumed runs are excluded: they skip simulation and re-read an already-mined transaction, so their totals are not comparable.",
       all: verified.map((c) => ({
         runId: c.runId,
         transactionHash: c.transaction?.hash ?? null,

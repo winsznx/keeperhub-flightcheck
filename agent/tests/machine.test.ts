@@ -34,6 +34,8 @@ interface StubOpts {
   status?: Array<{ status: number; body: unknown; headers?: Record<string, string> }>;
   code?: string;
   receipt?: unknown;
+  /** Mutate the challenge-echoing receipt so one field can be varied in isolation. */
+  receiptTransform?: (r: ReturnType<typeof echoingReceipt>) => unknown;
   chainIdHex?: string;
   throwOnBroadcast?: number;
 }
@@ -115,7 +117,9 @@ function stub(opts: StubOpts) {
       case "eth_getCode":
         return reply(opts.code ?? REAL_CANARY_CODE);
       case "eth_getTransactionReceipt":
-        return reply(opts.receipt === undefined ? echoingReceipt(seenChallenge) : opts.receipt);
+        if (opts.receipt !== undefined) return reply(opts.receipt);
+        if (opts.receiptTransform) return reply(opts.receiptTransform(echoingReceipt(seenChallenge)));
+        return reply(echoingReceipt(seenChallenge));
       default:
         return reply(null);
     }
@@ -392,13 +396,16 @@ describe("settlement and verification", () => {
   });
 
   test("an event reporting another chain fails verification", async () => {
+    // Keeps the run's real challenge so the challenge check passes and the chain-id branch is
+    // actually reached. Asserting a disjunction here previously let this test pass without ever
+    // executing the branch it is named for.
     const { result } = await run({
-      receipt: F.realReceipt({
-        logs: [{ ...F.realReceipt().logs[0], data: "0x" + (1).toString(16).padStart(64, "0") }],
+      receiptTransform: (r) => ({
+        ...r,
+        logs: [{ ...r.logs[0]!, data: "0x" + (1).toString(16).padStart(64, "0") }],
       }),
     });
-    // The challenge check runs first, so line up a matching challenge to isolate the chain check.
-    assert.ok(["FC_EVENT_CHAINID_MISMATCH", "FC_EVENT_CHALLENGE_MISMATCH"].includes(result.error!.code));
+    assert.equal(result.error?.code, "FC_EVENT_CHAINID_MISMATCH");
   });
 
   test("hashes that disagree between the two legs stop the run", async () => {
@@ -408,21 +415,61 @@ describe("settlement and verification", () => {
     assert.equal(result.error?.code, "FC_HASH_DISAGREEMENT");
   });
 
-  test("the sender assertion applies on the sponsored path", async () => {
-    const foreignSender = F.realReceipt({
-      logs: [
-        {
-          ...F.realReceipt().logs[0],
-          topics: [
-            F.TOPIC0,
-            "0x000000000000000000000000000000000000000000000000000000000000dead",
-            F.realReceipt().logs[0]!.topics[2],
-          ],
-        },
-      ],
+  test("a foreign event sender fails verification", async () => {
+    const { result } = await run({
+      receiptTransform: (r) => ({
+        ...r,
+        logs: [
+          {
+            ...r.logs[0]!,
+            topics: [
+              F.TOPIC0,
+              "0x000000000000000000000000deadbeefdeadbeefdeadbeefdeadbeefdeadbeef",
+              r.logs[0]!.topics[2],
+            ],
+          },
+        ],
+      }),
     });
-    const { result } = await run({ receipt: foreignSender });
-    assert.ok(["FC_EVENT_SENDER_MISMATCH", "FC_EVENT_CHALLENGE_MISMATCH"].includes(result.error!.code));
+    assert.equal(result.error?.code, "FC_EVENT_SENDER_MISMATCH");
+    assert.notEqual(result.outcome, "verified");
+  });
+
+  test("the sender check cannot be switched off by KeeperHub omitting `sponsored`", async () => {
+    // Regression for an external audit finding. The assertion used to be gated on
+    // status.sponsored === true, a value KeeperHub supplies, so omitting one optional boolean
+    // skipped the only check binding the event to the organisation's identity. A run reached
+    // PROOF_WRITTEN with a 0xdeadbeef sender and allLegsAgree: true.
+    const withoutSponsored = { ...F.REAL_STATUS_COMPLETED } as Record<string, unknown>;
+    delete withoutSponsored.sponsored;
+
+    const { result } = await run({
+      status: [{ status: 200, body: withoutSponsored, headers: { "x-poll-interval-hint": "0" } }],
+      receiptTransform: (r) => ({
+        ...r,
+        logs: [
+          {
+            ...r.logs[0]!,
+            topics: [
+              F.TOPIC0,
+              "0x000000000000000000000000deadbeefdeadbeefdeadbeefdeadbeefdeadbeef",
+              r.logs[0]!.topics[2],
+            ],
+          },
+        ],
+      }),
+    });
+    assert.equal(result.error?.code, "FC_EVENT_SENDER_MISMATCH");
+    assert.notEqual(result.outcome, "verified");
+  });
+
+  test("a matching sender still verifies when `sponsored` is absent", async () => {
+    const withoutSponsored = { ...F.REAL_STATUS_COMPLETED } as Record<string, unknown>;
+    delete withoutSponsored.sponsored;
+    const { result } = await run({
+      status: [{ status: 200, body: withoutSponsored, headers: { "x-poll-interval-hint": "0" } }],
+    });
+    assert.equal(result.outcome, "verified");
   });
 });
 
@@ -444,10 +491,35 @@ describe("proof capsule", () => {
     assert.equal((capsule.agreement as Record<string, unknown>).allLegsAgree, false);
   });
 
-  test("records that the sender assertion was measured rather than assumed", async () => {
+  test("records that the sender was asserted, and what KeeperHub claimed about sponsorship", async () => {
     const { result } = await run({});
     const capsule = buildCapsule(result, "https://sepolia.base.org");
     const iv = capsule.independentVerification as Record<string, unknown>;
-    assert.equal(iv.senderAssertion, "asserted-and-matched-under-sponsored-true");
+    assert.equal(iv.senderAssertion, "asserted-and-matched");
+    assert.equal(iv.senderMatchesOrgWallet, true);
+    // Recorded as an observation, never as the thing that decides whether to check.
+    assert.equal(iv.sponsoredReportedByKeeperHub, true);
+  });
+
+  test("independentEventMatches is false when the sender is foreign", async () => {
+    const { result } = await run({
+      receiptTransform: (r) => ({
+        ...r,
+        logs: [
+          {
+            ...r.logs[0]!,
+            topics: [
+              F.TOPIC0,
+              "0x000000000000000000000000deadbeefdeadbeefdeadbeefdeadbeefdeadbeef",
+              r.logs[0]!.topics[2],
+            ],
+          },
+        ],
+      }),
+    });
+    const capsule = buildCapsule(result, "https://sepolia.base.org");
+    const agree = capsule.agreement as Record<string, unknown>;
+    assert.equal(agree.independentEventMatches, false);
+    assert.equal(agree.allLegsAgree, false);
   });
 });

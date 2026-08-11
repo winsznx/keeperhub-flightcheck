@@ -136,7 +136,7 @@ FC_ENV_WRONG_KEY_TYPE
 
 Every code is listed in [docs/failure-codes.md](docs/failure-codes.md).
 
-## Losing the response cannot create a second transaction
+## Losing the response did not create a second transaction
 
 This is the part worth reading the code for.
 
@@ -165,6 +165,13 @@ The count comes from the chain, not from our bookkeeping: the challenge is uniqu
 is an indexed topic, so `eth_getLogs` on it counts the transactions that executed that work. Full
 log in [`evidence/recovery/`](evidence/recovery/).
 
+Two honest limits on that sentence, both raised by an external audit. `eth_getLogs` only returns
+logs from *successful* transactions, so a duplicate that reverted or ran out of gas would be
+invisible to this count; the claim is one successfully executed transaction, not one broadcast
+attempt. And KeeperHub's idempotency is a third-party guarantee we observed once, not a property
+this tool enforces. What Flightcheck controls is its own side: it never mints a new key for a
+retry, which is the behaviour that turns a lost response into a second transaction.
+
 ## Commands
 
 ```bash
@@ -188,9 +195,20 @@ The build is byte-reproducible, so the pinned hash is something you can regenera
 something you take on trust:
 
 ```bash
-cd contracts && forge build
-jq -r '.deployedBytecode.object' out/KeeperHubFlightcheckCanary.sol/KeeperHubFlightcheckCanary.json | cast keccak
+cd contracts
+forge install foundry-rs/forge-std   # lib/ is gitignored; only needed for the tests
+forge build
+jq -e -r '.deployedBytecode.object' out/KeeperHubFlightcheckCanary.sol/KeeperHubFlightcheckCanary.json | cast keccak
 # 0x753157870ee9e692c7e35e0890fad801fd30fc4674a74a62a7526758da649dd0
+```
+
+`jq -e` matters: without it a build failure feeds empty input to `cast keccak`, which cheerfully
+returns the hash of the empty string rather than erroring.
+
+Or skip the build entirely and compare the deployed code against the pin:
+
+```bash
+cast code 0x2A6FC8182Bf9928Ef7517dA980dC79e8107c555A --rpc-url https://sepolia.base.org | cast keccak
 ```
 
 Secrets: the API key is never printed, logged, or written to any capsule. Output passes through a
@@ -227,8 +245,12 @@ The short version:
 - `gasUsedWei` carries gas units, not wei.
 - A simulation passes while the payer holds zero balance, so a green simulation is not proof a
   broadcast can land.
-- The canonical `llms.txt` index omits the quickstart, the first-verified-transaction guide and
-  the headless onboarding page, all of which return 200.
+- `/api/openapi` is advertised as the machine-readable schema for the REST API and contains no
+  core REST path and no bearer scheme.
+
+One finding was **withdrawn** before publication. `llms.txt` omitted the whole onboarding path
+when measured on Aug 10; re-running the reproduction on Aug 11 showed it had been fixed upstream.
+The teardown records both measurements rather than dropping it.
 
 ## Upstream
 

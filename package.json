@@ -9,7 +9,7 @@
   "scripts": {
     "flightcheck": "node --experimental-strip-types --no-warnings agent/src/cli.ts",
     "test": "node --experimental-strip-types --no-warnings --test agent/tests/*.test.ts",
-    "test:live": "FLIGHTCHECK_LIVE=1 node --experimental-strip-types --no-warnings --test agent/tests/*.test.ts",
+    "test:acceptance": "node --experimental-strip-types --no-warnings agent/tests/fault-injection.ts",
     "typecheck": "tsc --noEmit",
     "evidence": "node --experimental-strip-types --no-warnings agent/src/manifest.ts",
     "site:build": "node --experimental-strip-types --no-warnings site/build.ts",

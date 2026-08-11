@@ -54,12 +54,13 @@ export function scrub(text: string): string {
   let out = text;
   for (const secret of registered) {
     out = replaceAll(out, secret, "<redacted>");
-    // A prefix long enough to identify the credential is still a disclosure.
+    // Every prefix length, not just the longest present one. Breaking after the first hit made
+    // scrub non-idempotent: a string carrying the same secret at two truncation lengths kept the
+    // shorter one, and running scrub again would redact it. An audit caught this by feeding
+    // scrub's own output back into findLeaks.
     for (let len = secret.length - 1; len >= MIN_PARTIAL; len--) {
       const prefix = secret.slice(0, len);
-      if (!out.includes(prefix)) continue;
-      out = replaceAll(out, prefix, "<redacted>");
-      break;
+      if (out.includes(prefix)) out = replaceAll(out, prefix, "<redacted>");
     }
   }
   for (const { re, label } of PATTERNS) {
@@ -116,8 +117,15 @@ function replaceAll(haystack: string, needle: string, replacement: string): stri
 export function safeRpcOrigin(url: string): string {
   try {
     const u = new URL(url);
-    const bare = !u.username && !u.password && !u.search && (u.pathname === "" || u.pathname === "/");
-    return bare ? `${u.protocol}//${u.host}` : "redacted";
+    const bare =
+      !u.username && !u.password && !u.search && (u.pathname === "" || u.pathname === "/");
+    if (!bare) return "redacted";
+    // Some providers key by subdomain rather than by path, so a bare origin is not automatically
+    // safe. Anything that looks like an embedded credential in the host is dropped too.
+    const host = u.hostname.toLowerCase();
+    const label = host.split(".")[0] ?? "";
+    const looksLikeKey = label.length >= 16 && /[0-9]/.test(label) && /[a-z]/.test(label);
+    return looksLikeKey ? "redacted" : `${u.protocol}//${u.host}`;
   } catch {
     return "redacted";
   }

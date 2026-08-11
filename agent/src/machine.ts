@@ -451,20 +451,26 @@ export async function runFlightcheck(opts: RunOptions): Promise<RunResult> {
         });
       }
       /*
-       * The sender assertion applies only on the sponsored path, where it was measured.
+       * The sender assertion runs whenever the org wallet is known, and fails closed.
        *
-       * Under sponsorship the paying EOA and the top-level callee are both KeeperHub
-       * infrastructure, yet msg.sender at the canary is still the org wallet. That was observed,
-       * not assumed. The non-sponsored path has not been measured, so asserting there would be
-       * inventing a failure mode.
+       * An earlier version gated this on `status.sponsored === true`. That was wrong, and an
+       * external audit demonstrated why: `sponsored` is supplied by KeeperHub, so omitting one
+       * optional boolean from a JSON response skipped the only check binding the onchain event
+       * to the organisation's identity. A run reached PROOF_WRITTEN with an event sender of
+       * 0xdeadbeef and a capsule reading allLegsAgree: true.
+       *
+       * A check that the party being verified can switch off is not a check. Under sponsorship
+       * the paying EOA and the top-level callee are both KeeperHub infrastructure while
+       * msg.sender at the canary is still the org wallet, which is measured. If a legitimate
+       * execution path ever produces a different sender, this fails loudly and we investigate,
+       * which is the correct direction to be wrong in.
        */
-      if (status?.sponsored === true && orgWallet) {
-        if (event.sender.toLowerCase() !== orgWallet.toLowerCase()) {
-          throw new FlightcheckError("FC_EVENT_SENDER_MISMATCH", {
-            expected: orgWallet,
-            actual: event.sender,
-          });
-        }
+      if (orgWallet && event.sender.toLowerCase() !== orgWallet.toLowerCase()) {
+        throw new FlightcheckError("FC_EVENT_SENDER_MISMATCH", {
+          expected: orgWallet,
+          actual: event.sender,
+          sponsored: String(status?.sponsored ?? "not reported"),
+        });
       }
     });
     advance("EVENT_VERIFIED", event ? (event as DecodedFlightcheckEvent).challenge : undefined);

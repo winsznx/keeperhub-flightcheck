@@ -1,6 +1,6 @@
 {
   "schema": "keeperhub-flightcheck/manifest/v1",
-  "generatedAt": "2026-08-11T12:41:56.439Z",
+  "generatedAt": "2026-08-11T13:13:48.858Z",
   "toolVersion": "0.1.0",
   "proofSchema": "keeperhub-flightcheck/v1",
   "canary": {
@@ -43,8 +43,10 @@
   "runs": {
     "total": 5,
     "verified": 5,
-    "fastestVerifiedMs": 5588,
-    "slowestVerifiedMs": 10515,
+    "endToEndRuns": 4,
+    "fastestEndToEndMs": 8110,
+    "slowestEndToEndMs": 10515,
+    "timingNote": "Timings cover cold end-to-end runs only. Resumed runs are excluded: they skip simulation and re-read an already-mined transaction, so their totals are not comparable.",
     "all": [
       {
         "runId": "fc_308623d7-6be6-4d47-9e8c-f9010181389f",
@@ -149,7 +151,7 @@
       "docsOpened": "11 to 1",
       "failedAttempts": "6 to 0"
     },
-    "caveat": "Small sample: one run per arm, both by capable agents. The baseline agent performed unusually well, chose a sensible zero-value operation on its own, and wrote its own keccak implementation to verify the event independently. A less capable agent, or a human, would be slower in the baseline arm and roughly as fast in the treatment arm, so this comparison understates rather than overstates the difference. The baseline arm also solved a slightly different problem: it chose its own contract call, while the treatment arm's target was fixed.",
+    "caveat": "Read this before the numbers. (1) The arms did not solve the same problem. The baseline agent had to choose a contract, invent a verification method for it, and hand-write keccak to decode an Approval topic. The treatment arm called a canary purpose-built to be trivially verifiable, emitting an indexed challenge the tool generated, with topic0 pinned in config and the decoder shipped. This benchmark substantially measures a purpose-built tool beating general documentation at the exact task it was built for. (2) The docsOpened figures are not like-for-like: the baseline count includes URLs the agent guessed and got 404s from, while the treatment count is one file that was handed to it, requiring no discovery. (3) n=1 per arm, timings self-captured by the agents, and the treatment log was written by the same agent asked to review the product. An earlier version of this field claimed the comparison understates rather than overstates the difference; that direction was asserted rather than measured, and given (1) it may well be backwards. An external audit flagged all three points.",
     "notMeasured": [
       "human onboarding time, in either arm",
       "repeat runs for variance",

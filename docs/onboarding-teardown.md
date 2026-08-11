@@ -223,7 +223,7 @@ print('schemas', list(d.get('components',{}).get('schemas',{})))
 print('security', list(d.get('components',{}).get('securitySchemes',{})))"
 ```
 
-Result: 114 paths, every one a published workflow call endpoint. Zero core REST paths. Empty
+Result on 2026-08-11: 117 paths, every one a published workflow call endpoint. Zero core REST paths. Empty
 `components.schemas`. Security schemes are `x402` and `siwx` only, so the `kh_` bearer scheme
 that every documented REST call requires is not discoverable from the spec at all.
 
