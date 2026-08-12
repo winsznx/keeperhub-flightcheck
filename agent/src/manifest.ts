@@ -67,6 +67,7 @@ interface UpstreamRow {
   draft: boolean;
   mergeable: string | null;
   reviewDecision: string | null;
+  checks: { total: number; failing: number; names: string[] } | null;
   labels: string[];
 }
 
@@ -109,6 +110,31 @@ async function fetchUpstream(previous: unknown): Promise<Record<string, unknown>
       } catch {
         // A missing review list is not a reason to drop the PR row.
       }
+      /*
+       * Check state, because a review is not the only thing that can be red.
+       *
+       * Both CLI pull requests were failing `check-issue-link` for a day while this page said
+       * they were awaiting review. The page was reading the review decision and nothing else. A
+       * status the reader would act on differently has to be fetched, not assumed.
+       */
+      let checks: { total: number; failing: number; names: string[] } | null = null;
+      try {
+        const head = String((j.head as Record<string, unknown> | undefined)?.sha ?? "");
+        if (head) {
+          const cr = await fetch(`https://api.github.com/repos/${pr.repo}/commits/${head}/check-runs`, {
+            headers: { accept: "application/vnd.github+json", "user-agent": "keeperhub-flightcheck" },
+          });
+          if (cr.ok) {
+            const body = (await cr.json()) as { check_runs?: Array<{ name: string; conclusion: string | null }> };
+            const runs = body.check_runs ?? [];
+            const bad = runs.filter((r) => r.conclusion === "failure" || r.conclusion === "timed_out");
+            checks = { total: runs.length, failing: bad.length, names: bad.map((r) => r.name) };
+          }
+        }
+      } catch {
+        // No check data is reported as no check data, never as green.
+      }
+
       rows.push({
         repo: pr.repo,
         number: pr.number,
@@ -119,7 +145,8 @@ async function fetchUpstream(previous: unknown): Promise<Record<string, unknown>
         draft: j.draft === true,
         mergeable: typeof j.mergeable_state === "string" ? j.mergeable_state : null,
         reviewDecision,
-      labels: Array.isArray(j.labels) ? (j.labels as Array<{ name?: string }>).map((l) => String(l.name ?? "")) : [],
+        checks,
+        labels: Array.isArray(j.labels) ? (j.labels as Array<{ name?: string }>).map((l) => String(l.name ?? "")) : [],
       });
     } catch {
       ok = false;

@@ -33,6 +33,7 @@ interface UpstreamPr {
   draft: boolean;
   mergeable: string | null;
   reviewDecision: string | null;
+  checks: { total: number; failing: number; names: string[] } | null;
 }
 
 interface Manifest {
@@ -348,6 +349,9 @@ function upstreamRows(): string {
       if (pr.reviewDecision === "CHANGES_REQUESTED") bits.push("REVIEWED · CHANGES ADDRESSED");
       else if (pr.reviewDecision === "APPROVED") bits.push("APPROVED");
       else bits.push("AWAITING REVIEW");
+      // A failing gate is the thing a reader most wants to know and the thing a page like this
+      // is most tempted to leave out.
+      if (pr.checks && pr.checks.failing > 0) bits.push(`<b style="color:var(--ember)">${esc(pr.checks.names[0] ?? "check")} FAILING</b>`);
       return `<a class="pr" href="${esc(pr.url)}">
         <span class="rp">${esc(pr.repo.replace("KeeperHub/keeperhub", "KeeperHub").replace("KeeperHub/cli", "KeeperHub CLI"))}</span>
         <span class="num">#${esc(pr.number)}</span>
