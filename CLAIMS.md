@@ -14,7 +14,8 @@ Proof levels:
 | **fixture** | a parser or state-machine test against a captured real response shape, not a live reproduction |
 | **observed** | seen on our runs, not guaranteed to generalise |
 
-Last verified: 2026-08-11, after an external adversarial audit and the Bootstrap extension. Rows 8 and 35 were downgraded or
+Last verified: 2026-08-12, after a clean-room reproduction on an independent KeeperHub account.
+That run corrected a published claim about wallet nonce behaviour, recorded as row 59. Rows 8 and 35 were downgraded or
 withdrawn as a result, and rows 4, 12 and 14 were narrowed to what the evidence actually shows.
 The audit report is in `internal/audit-report.md`.
 
@@ -114,6 +115,17 @@ Each of these is stated in the teardown at the level below and nowhere stronger.
 | 52 | The treasury private key never entered the repository, git history, or any model-visible output | measured | generated locally, piped to `wrangler secret put` over stdin; the published address was read back from the Worker, which derives it from the secret |
 | 49a | The faucet's per-caller and global caps are enforced atomically | live | **Not true in the first release.** An audit fired 15 concurrent claims against a cap of 5 and none were refused, because the counter was a read-modify-write across three statements. It is now a single `INSERT ... ON CONFLICT DO UPDATE ... RETURNING`. Re-tested with the same 15-concurrent attack: all refused, and the counter recorded all 15 where it previously recorded about 3 |
 | 53 | The Flightcheck CLI has zero runtime dependencies. The faucet Worker has one, `viem` | measured | root `package.json` empty `dependencies`; `faucet/package.json` has `viem` only, `npm audit` clean on both |
+
+## Independent reproducibility
+
+| # | Claim | Level | Evidence |
+|---|---|---|---|
+| 54 | The published artifact produces a verified transaction on a KeeperHub account with no relationship to ours | onchain | [`0x642002f79b9a6ae4570c84f6b8d3c0a12a9f001304a7921e48f5eb7149aff852`](https://sepolia.basescan.org/tx/0x642002f79b9a6ae4570c84f6b8d3c0a12a9f001304a7921e48f5eb7149aff852), execution `j6cjarjfr3obh6syblyjd`, org wallet `0xaa943223d9601cfa673a9a574b381864ec1a42ee` |
+| 55 | That run started from a fresh clone with no `.env`, no `npm install`, no run state, and `KEEPERHUB_API_KEY` explicitly unset | measured | `evidence/cleanroom/cleanroom.json` preconditions; wallet was balance 0, nonce 0, no code beforehand |
+| 56 | The credential was typed into the hidden prompt over a real pty and never echoed | measured | `keyEchoedToTerminal: false`, checked programmatically against the captured pty stream |
+| 57 | Gas sponsorship applies to a brand-new organisation, not only to ours | onchain | the fresh wallet held zero ETH before and after, and the execution completed with `sponsored: true` |
+| 58 | The sender assertion holds on a second independent organisation wallet | onchain | previously measured on one org; the clean-room event carries the fresh org wallet as `msg.sender` |
+| 59 | The organisation wallet's nonce moves exactly once, at EIP-7702 delegation install, then never again | onchain | fresh wallet 0→1 on its first run; dev wallet still 1 after 8 canary executions. **Corrects an earlier claim in `docs/how-verification-works.md` that the nonce "did not move"** |
 
 ## Deliberately not claimed
 

@@ -1,0 +1,49 @@
+
+Flightcheck Bootstrap
+
+  ✓ Node runtime supported  24.19.0
+  ✓ KeeperHub API reachable
+
+  ! KeeperHub organisation credential required
+
+    KeeperHub → Settings → API Keys → Organisation
+
+    The key is read from this terminal directly. It is not echoed, not written to
+    .env, not stored in run state, and not included in any proof or faucet request.
+    It lives in this process only and disappears when it exits.
+
+  KeeperHub organisation key: 
+  ✓ Organisation key accepted, held in memory only
+  [32m✓[0m Authenticated[2m  scope mcp:read mcp:write mcp:admin[0m
+  [32m✓[0m Organisation wallet resolved[2m  0xaa943223d9601cfa673a9a574b381864ec1a42ee[0m
+  [32m✓[0m Chain available[2m  Base Sepolia (84532)[0m
+  [36m✓[0m Canary bytecode verified[2m  0x753157870ee9e692c7e35e0890fad801fd30fc4674a74a62a7526758da649dd0[0m
+  [32m✓[0m Simulation passed[2m  gas 23929[0m
+  [32m✓[0m Request persisted[2m  11cd1a776d1b1eca…[0m
+  [32m✓[0m Execution created[2m  j6cjarjfr3obh6syblyjd[0m
+  [32m✓[0m Transaction observed[2m  0x642002f79b9a6ae4570c84f6b8d3c0a12a9f001304a7921e48f5eb7149aff852[0m
+  [32m✓[0m Receipt confirmed[2m  block 45376232[0m
+  [36m✓[0m Flightcheck event verified[2m  0x2648d83ce23dfc56189c0efef7bc2f8bd5a2b9a5c5087c64e8ae40083995a2b1[0m
+  [32m✓[0m Proof written
+manifest: 7 verified run(s), canonical 0xb4098917d12030a249e9376217d765b715362c744dd23e9b03e0213253d452dc
+failure reference: 44 codes
+
+[32m[1m  Verified. KeeperHub executed onchain from this environment.[0m[0m
+
+  execution   j6cjarjfr3obh6syblyjd
+  transaction 0x642002f79b9a6ae4570c84f6b8d3c0a12a9f001304a7921e48f5eb7149aff852
+  block       45376232 on chain 84532
+  challenge   0x2648d83ce23dfc56189c0efef7bc2f8bd5a2b9a5c5087c64e8ae40083995a2b1
+  msg.sender  0xaa943223d9601cfa673a9a574b381864ec1a42ee
+  sponsored   true
+
+[2m  Three independent legs agreed:[0m
+[2m    KeeperHub reported the execution completed and verified its own receipt[0m
+[2m    A public Base Sepolia node returned a successful receipt for that hash[0m
+[2m    The decoded Flightcheck event carries this run's challenge and chain id[0m
+
+  https://sepolia.basescan.org/tx/0x642002f79b9a6ae4570c84f6b8d3c0a12a9f001304a7921e48f5eb7149aff852
+[2m  proof /private/tmp/claude-501/-Users-mac-keeperhub/2436695e-4f74-4090-a728-2f14a850cb36/scratchpad/cleanroom/repo/.keeperhub/flightcheck/proofs/fc_478a7e61-1cc2-4553-a9d0-98c12dcfbadd.json[0m
+[2m  proof /private/tmp/claude-501/-Users-mac-keeperhub/2436695e-4f74-4090-a728-2f14a850cb36/scratchpad/cleanroom/repo/evidence/runs/fc_478a7e61-1cc2-4553-a9d0-98c12dcfbadd.json[0m
+[2m  7.4s total[0m
+

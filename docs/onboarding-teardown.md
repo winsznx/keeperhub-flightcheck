@@ -168,9 +168,22 @@ teardown because the first instinct of every builder verifying their first trans
 open their wallet address on the explorer, and that instinct returns an empty page. Nothing in
 the onboarding path warns you before you form that instinct.
 
-Also worth recording, because it is not documented and we had to measure it: under sponsorship
-`msg.sender` inside the called contract is still the org wallet, even though the paying EOA and
-the top-level callee are both KeeperHub infrastructure. That is useful and non-obvious.
+Also worth recording, because we had to measure it: under sponsorship `msg.sender` inside the
+called contract is still the org wallet, even though the paying EOA and the top-level callee are
+both KeeperHub infrastructure. Measured on two independent organisations.
+
+And the nonce behaves in a way that actively misleads. The organisation wallet is an EIP-7702
+delegated account, so the first sponsored execution installs the delegation and consumes exactly
+one nonce, then never moves again:
+
+```
+fresh wallet, before   nonce 0   balance 0   code 0x
+fresh wallet, after    nonce 1   balance 0   code 0xef0100955d84…222c6f
+dev wallet, 8 runs     nonce 1   balance 0   same delegation
+```
+
+A builder checking "did my wallet do anything" sees one increment covering eight transactions.
+Balance is the only wallet-level field that stays honest, and it stays at zero throughout.
 
 **How Flightcheck handles it.** Verification is always hash → receipt → decoded log, never
 wallet state. The sender assertion is applied only on the sponsored path, because that is the

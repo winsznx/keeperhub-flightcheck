@@ -1,0 +1,57 @@
+{
+  "artifact": "keeperhub-flightcheck/cleanroom/v1",
+  "purpose": "Independent reproducibility. The canonical transaction proves the mechanism works. This proves it works for someone who is not us.",
+  "date": "2026-08-12",
+  "preconditions": {
+    "keeperhubAccount": "created the same morning, unrelated to the development account",
+    "organisationWallet": "0xaa943223d9601cfa673a9a574b381864ec1a42ee",
+    "walletStateBeforeRun": {
+      "balanceWei": "0",
+      "nonce": 0,
+      "code": "0x",
+      "everUsed": false
+    },
+    "repository": "fresh git clone of the published repo, commit de7ceab",
+    "envFile": "none",
+    "environmentVariable": "KEEPERHUB_API_KEY explicitly unset in the child process",
+    "runState": "no .keeperhub directory",
+    "npmInstall": "not run",
+    "credentialEntry": "typed into the hidden interactive prompt over a real pty, as a human would"
+  },
+  "result": {
+    "outcome": "verified",
+    "transactionHash": "0x642002f79b9a6ae4570c84f6b8d3c0a12a9f001304a7921e48f5eb7149aff852",
+    "explorer": "https://sepolia.basescan.org/tx/0x642002f79b9a6ae4570c84f6b8d3c0a12a9f001304a7921e48f5eb7149aff852",
+    "executionId": "j6cjarjfr3obh6syblyjd",
+    "blockNumber": 45376232,
+    "challenge": "0x2648d83ce23dfc56189c0efef7bc2f8bd5a2b9a5c5087c64e8ae40083995a2b1",
+    "sponsored": true,
+    "eventSender": "0xaa943223d9601cfa673a9a574b381864ec1a42ee",
+    "senderAssertion": "asserted-and-matched",
+    "allLegsAgree": true,
+    "totalMs": 7412,
+    "wallClockSeconds": 9.1
+  },
+  "whatThisEstablishes": [
+    "The published artifact works from a fresh clone on an account with no relationship to ours.",
+    "The credential boundary holds end to end: the key was typed into the hidden prompt over a real pty and never echoed, verified programmatically (keyEchoedToTerminal: false).",
+    "Gas sponsorship applies to a brand-new organisation, not just to ours. The wallet held zero ETH before and after.",
+    "The sender assertion holds on a second, independent organisation wallet. It was previously measured on one."
+  ],
+  "faucet": {
+    "used": false,
+    "why": "KeeperHub sponsored the execution, so the gas policy correctly refused to fund. A zero balance is not a reason to fund anything, and this run is a second independent demonstration of that."
+  },
+  "nonceObservation": {
+    "before": 0,
+    "after": 1,
+    "balanceBefore": "0",
+    "balanceAfter": "0",
+    "codeAfter": "0xef0100955d84139e7621bc571b117d8eb5d28a4a222c6f",
+    "note": "The organisation wallet is an EIP-7702 delegated account. The first sponsored execution installs the delegation, which consumes exactly one nonce. The development wallet has made 8 canary executions and its nonce is also 1, so the nonce moves once and never again."
+  },
+  "sourceFiles": {
+    "terminalTranscript": "evidence/cleanroom/run-output.txt",
+    "proofCapsule": "evidence/cleanroom/proof.json"
+  }
+}

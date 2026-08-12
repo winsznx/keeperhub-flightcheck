@@ -34,6 +34,20 @@ $ npm run flightcheck -- --execute
 | canary contract | [`0x2A6FC8182Bf9928Ef7517dA980dC79e8107c555A`](https://sepolia.basescan.org/address/0x2a6fc8182bf9928ef7517da980dc79e8107c555a) (source-verified) |
 | proof capsule | [`evidence/runs/`](evidence/runs/) |
 
+### Reproduced on an account that is not ours
+
+The canonical transaction proves the mechanism works. This proves it works for someone else:
+
+| | |
+|---|---|
+| transaction | [`0x642002f79b9a6ae4570c84f6b8d3c0a12a9f001304a7921e48f5eb7149aff852`](https://sepolia.basescan.org/tx/0x642002f79b9a6ae4570c84f6b8d3c0a12a9f001304a7921e48f5eb7149aff852) |
+| execution | `j6cjarjfr3obh6syblyjd` |
+| conditions | KeeperHub account created that morning, fresh clone, no `.env`, no `npm install`, no run state, key typed into the hidden prompt over a real terminal |
+| wallet before | balance 0, nonce 0, no code, never used |
+| result | verified in 7.4s, sponsored, faucet correctly not used |
+
+Full preconditions and transcript in [`evidence/cleanroom/`](evidence/cleanroom/).
+
 That one is the canonical reference. The terminal output above is from a later run through the
 finished CLI; every verified run is recorded in [`evidence/runs/`](evidence/runs/) and summarised
 in [`evidence/manifest.json`](evidence/manifest.json).

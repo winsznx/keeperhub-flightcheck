@@ -34,10 +34,23 @@ event sender   0xfd35ae935de7be93ffd585d6627268d833ed834c   org wallet
 org wallet native balance throughout the run: 0
 ```
 
-The org wallet did not send the transaction, did not pay for it, and its nonce did not move. Open
-it on Basescan and the transaction list is empty. Every wallet-level heuristic, balance delta,
-nonce increment, txlist scan, concludes that nothing happened, while a transaction sits in block
-45339897 doing exactly what was asked.
+The org wallet did not send the transaction and did not pay for it. Open it on Basescan and the
+transaction list is empty, while a transaction sits in block 45339897 doing exactly what was asked.
+
+The nonce deserves its own paragraph, because an earlier version of this document said it "did not
+move" and that was wrong. It moves exactly once. The organisation wallet is an EIP-7702 delegated
+account, and the first sponsored execution installs the delegation, which consumes one nonce:
+
+```
+before the first run   nonce 0   balance 0   code 0x
+after the first run    nonce 1   balance 0   code 0xef0100955d84139e7621bc571b117d8eb5d28a4a222c6f
+```
+
+It then stays there. The development wallet has made 8 canary executions and its nonce is still 1;
+a second organisation wallet, used once, is also at 1. So the nonce is worse than a null signal, it
+is a misleading one: a verifier sees a single increment behind any number of transactions.
+
+Balance is the reliable negative. It never changes, because the relayer pays.
 
 So verification goes hash → receipt → log, and never touches wallet state.
 
