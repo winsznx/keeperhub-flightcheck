@@ -308,21 +308,31 @@ The teardown records both measurements rather than dropping it.
 
 ## Upstream
 
-Two PRs are open against KeeperHub, both docs, both re-verified against the live site
-immediately before opening:
+Four PRs open against KeeperHub, all from findings this project proved with real transactions.
+None is merged, and nothing here depends on them being merged.
 
-- [#2008](https://github.com/KeeperHub/keeperhub/pull/2008) documents the `unconfirmed`
-  execution status, which is live but missing from the Direct Execution status list
-- [#2009](https://github.com/KeeperHub/keeperhub/pull/2009) corrects what the OpenAPI document
-  is described as covering
+**KeeperHub/cli**
 
-Neither is merged, and as of 2026-08-11 neither change is on `staging`. Nothing here depends on
-them being merged.
+- [#99](https://github.com/KeeperHub/cli/pull/99) `fix(execute)`: a write can return `202` with
+  `status: "completed"` and no `transactionHash`, and the CLI treated that as terminal, so
+  `--wait` returned a success the caller could not verify. Also honours `X-Poll-Interval-Hint`,
+  which was being discarded in favour of a hardcoded 2s ticker. Verified each behavioural test
+  fails against the old behaviour.
+- [#100](https://github.com/KeeperHub/cli/pull/100) `fix(auth)`: `--with-token` left the terminal
+  echoing, so an organisation key was typed in plaintext and stayed in scrollback, and the
+  command's own example piped a live credential through shell history. Now prompts without echo,
+  piped input unchanged.
 
-Two earlier PRs, #2005 and #2009's predecessor #2006, are closed and unmerged. I closed them
-myself: they were opened with a git identity not linked to this GitHub account, and rewriting the
-authorship detached the branches from `staging`, so they could not be updated in place. Both
-carry a comment saying so. No maintainer reviewed or rejected them.
+**KeeperHub/keeperhub**
+
+- [#2008](https://github.com/KeeperHub/keeperhub/pull/2008) documents the `unconfirmed` execution
+  status, which is live but missing from the Direct Execution status list
+- [#2009](https://github.com/KeeperHub/keeperhub/pull/2009) corrects what the OpenAPI document is
+  described as covering
+
+The two CLI fixes are the ones worth reading. Both are places where the official client diverged
+from KeeperHub's own documented safe-execution contract, and we found them by building the
+reference implementation and running it against the live API.
 
 ## Repository
 

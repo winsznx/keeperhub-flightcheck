@@ -91,7 +91,10 @@ Each of these is stated in the teardown at the level below and nowhere stronger.
 | 34 | A simulation passed while the resolved sender held zero native balance | live-api + onchain | simulation response plus `cast balance` at the same time |
 | 35 | ~~`llms.txt` omits the onboarding pages~~ WITHDRAWN. True on 2026-08-10, fixed upstream by 2026-08-11 and re-verified before publication | withdrawn | teardown item 6 records both measurements |
 | 36 | `/api/openapi` contains no core REST path and no bearer security scheme, while being advertised as the REST schema | live-api | reproduction in the teardown, re-verified 2026-08-11: 117 paths, all workflow calls |
-| 38 | Two PRs are open and unmerged against KeeperHub/keeperhub, and neither change is on `staging` as of 2026-08-11 | verifiable | [#2008](https://github.com/KeeperHub/keeperhub/pull/2008), [#2009](https://github.com/KeeperHub/keeperhub/pull/2009). Predecessors #2005/#2006 were closed by us, not by a maintainer, after a commit-authorship rewrite detached their branches |
+| 38 | Four PRs are open and unmerged against KeeperHub, two of them CLI correctness fixes | verifiable | cli [#99](https://github.com/KeeperHub/cli/pull/99), cli [#100](https://github.com/KeeperHub/cli/pull/100), keeperhub [#2008](https://github.com/KeeperHub/keeperhub/pull/2008), [#2009](https://github.com/KeeperHub/keeperhub/pull/2009) |
+| 38a | The CLI treated a `completed` write with no transaction hash as terminal | live-api + source | reproduced against the live API (`{"executionId":"exnn6k0y1ojnnvb8sa1fu","status":"completed"}` with no hash) and confirmed at `cmd/execute/transfer.go:112` and `contract_call.go:126`; the PR's behavioural tests fail against the old code |
+| 38b | The CLI discarded `X-Poll-Interval-Hint` and polled on a fixed 2s timer | source | `cmd/execute/status.go:117`; the PR test catches the old timer at 1.99s |
+| 38c | `kh auth login --with-token` left the terminal echoing and its example piped a key through shell history | source + pty | `cmd/auth/login.go:65`, `internal/auth/device.go:178`; verified under a real pty before and after |
 | 37 | The org wallet's explorer view shows nothing for a sponsored execution | onchain | `receipt.from` is a relayer; org wallet balance was 0 throughout |
 
 ## Bootstrap and the gas fallback
