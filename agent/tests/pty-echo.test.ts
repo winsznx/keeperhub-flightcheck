@@ -9,6 +9,13 @@
  * So this spawns the real CLI under a real pty, types a recognisable fake key, and asserts the
  * bytes never come back. It needs `python3` for `pty.fork`, which ships on macOS and every Linux
  * distribution we care about, and skips rather than fails where that is unavailable.
+ *
+ * What it catches, and what it does not. Removing both suppression layers makes it fail with
+ * "Echo suppression failed"; removing either one alone does not, because each is sufficient on
+ * its own under a pty.fork() terminal and there is no observable difference to assert on. The
+ * redundancy exists because the audit caught setRawMode silently failing on macOS with Node 24
+ * in a real terminal, not because this test can tell the two layers apart. The mutation matrix
+ * is in evidence/probes/pty-echo-mutation.md.
  */
 
 import { test, describe } from "node:test";
@@ -21,36 +28,72 @@ import { REPO_ROOT } from "../src/env.ts";
 
 const PROBE = "kh_PTYECHOPROBE_abcdefghijkl";
 
+/*
+ * Type only once the program has asked.
+ *
+ * The first version slept a flat 2.0 seconds and then wrote the key. `setup` makes a live
+ * reachability call to KeeperHub before it prompts, so on a slow response the key went in while
+ * the terminal's line discipline was still echoing and before `stty -echo` had run. The
+ * terminal dutifully echoed it and the test reported a credential leak that had not happened.
+ *
+ * That is worse than flaky. The property under test is "after the program asks, typing does not
+ * echo", and a harness that types early cannot tell a real echo failure from its own race: both
+ * look like the probe appearing in the output.
+ *
+ * So it now waits for the prompt, records where in the stream the probe appeared if it did, and
+ * reports the two cases separately. Typing before the prompt is a harness bug and says so.
+ */
 const HARNESS = `
-import os, pty, sys, time, select
+import os, pty, sys, time, select, json
 cmd = sys.argv[1:]
-feed = os.environ["FC_PROBE"].encode() + b"\\r"
+probe = os.environ["FC_PROBE"]
+prompt = "organisation key:"
 pid, fd = pty.fork()
 if pid == 0:
     os.execvp(cmd[0], cmd)
     os._exit(1)
+
 out = b""
-time.sleep(2.0)
-try:
-    os.write(fd, feed)
-except OSError:
-    pass
-deadline = time.time() + 6
+typed = False
+typed_at_offset = None
+started = time.time()
+deadline = started + 45
+
 while time.time() < deadline:
-    r, _, _ = select.select([fd], [], [], 0.4)
+    r, _, _ = select.select([fd], [], [], 0.2)
     if r:
         try:
             chunk = os.read(fd, 4096)
-            if not chunk:
-                break
-            out += chunk
         except OSError:
             break
+        if not chunk:
+            break
+        out += chunk
+    # Only type once the program has actually asked for the key.
+    if not typed and prompt.encode() in out:
+        typed_at_offset = len(out)
+        time.sleep(0.3)
+        try:
+            os.write(fd, probe.encode() + b"\\r")
+        except OSError:
+            pass
+        typed = True
+        deadline = min(deadline, time.time() + 8)
+
 try:
     os.close(fd)
 except OSError:
     pass
-sys.stdout.write(out.decode(errors="replace"))
+
+text = out.decode(errors="replace")
+sys.stdout.write(json.dumps({
+    "promptSeen": prompt in text,
+    "typed": typed,
+    "promptOffset": text.find(prompt),
+    "probeOffset": text.find(probe),
+    "partialOffset": text.find("PTYECHOPROBE"),
+    "output": text,
+}))
 `;
 
 function havePython(): boolean {
@@ -93,18 +136,37 @@ describe("credential echo, under a real terminal", () => {
           },
         );
 
+        const r = JSON.parse(output) as {
+          promptSeen: boolean;
+          typed: boolean;
+          promptOffset: number;
+          probeOffset: number;
+          partialOffset: number;
+          output: string;
+        };
+
         assert.ok(
-          output.includes("KeeperHub organisation key:"),
-          "the prompt should have been reached; if not, this test is not exercising the read path",
+          r.promptSeen && r.typed,
+          "the prompt was never reached, so this run did not exercise the read path at all",
         );
-        assert.ok(
-          !output.includes(PROBE),
-          "the typed key must never appear in terminal output",
-        );
-        assert.ok(
-          !output.includes("PTYECHOPROBE"),
-          "not even part of the typed key may appear in terminal output",
-        );
+
+        /*
+         * Position relative to the prompt text is the discriminator, and it has to be the prompt
+         * text rather than the offset of the chunk the prompt arrived in. Those differ by however
+         * many bytes the read happened to carry past it, which is exactly enough to misclassify a
+         * real echo as a harness race. It did, on the first attempt at this.
+         *
+         *   probe before the prompt -> we typed before the program asked. Says nothing.
+         *   probe after the prompt  -> the terminal echoed what was typed at the prompt.
+         */
+        const firstHit = [r.probeOffset, r.partialOffset].filter((n) => n >= 0).sort((a, b) => a - b)[0];
+        if (firstHit !== undefined) {
+          assert.fail(
+            firstHit < r.promptOffset
+              ? `harness raced the program: the probe appears at offset ${firstHit}, before the prompt at ${r.promptOffset}. Nothing was typed at the prompt, so this run says nothing about echo suppression.`
+              : `the typed key appeared in terminal output at offset ${firstHit}, after the prompt at ${r.promptOffset}. Echo suppression failed.`,
+          );
+        }
       } finally {
         if (hadEnv && existsSync(stash)) renameSync(stash, envPath);
         rmSync(dir, { recursive: true, force: true });
