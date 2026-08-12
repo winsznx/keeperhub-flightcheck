@@ -1,10 +1,19 @@
 # REVIEW — KeeperHub Flightcheck
 
-> **Superseded in part.** This documents the build up to 2026-08-11 14:00Z. The Flightcheck
-> Bootstrap extension (guided setup, KeeperHub-first gas policy, Base Sepolia gas fallback) came
-> after it. Current numbers, the extension's own adversarial audit, and the updated DoraHacks
-> fields are in [SUBMISSION-DELTA.md](SUBMISSION-DELTA.md). Everything below about the canonical
-> transaction, the state machine, the response-loss proof and the benchmark is unchanged.
+> **Superseded in part.** This documents the build up to 2026-08-11 14:00Z. Three things came
+> after it: the Flightcheck Bootstrap extension (guided setup, KeeperHub-first gas policy, Base
+> Sepolia gas fallback), the clean-room reproduction on an independent KeeperHub account, and the
+> support capsule with KeeperHub request correlation. Current numbers, the extension's own
+> adversarial audit, and the updated DoraHacks fields are in
+> [SUBMISSION-DELTA.md](SUBMISSION-DELTA.md), whose final section is the state as of 2026-08-12.
+> Everything below about the canonical transaction, the state machine, the response-loss proof
+> and the benchmark is unchanged.
+>
+> One claim below was **withdrawn** after this was written. Section 4 and the proof page said a
+> sponsored execution leaves the organisation wallet's nonce untouched. The clean-room wallet
+> moved from nonce 0 to 1 installing its EIP-7702 delegation, so the narrower and correct
+> statement is that the nonce is not a reliable detector of sponsored execution in either
+> direction. `CLAIMS.md` row 59 carries it.
 
 For Tim, before anything is submitted anywhere. Nothing has been submitted to DoraHacks, posted,
 or announced.
@@ -59,9 +68,15 @@ rather than self-reported.
 | proof page | https://keeperhub-flightcheck.timjosh507.workers.dev |
 | canonical transaction | https://sepolia.basescan.org/tx/0xb4098917d12030a249e9376217d765b715362c744dd23e9b03e0213253d452dc |
 | canary contract | https://sepolia.basescan.org/address/0x2a6fc8182bf9928ef7517da980dc79e8107c555a |
-| upstream PR 1 | https://github.com/KeeperHub/keeperhub/pull/2008 (open, unmerged) |
-| upstream PR 2 | https://github.com/KeeperHub/keeperhub/pull/2009 (open, unmerged) |
+| clean-room transaction | https://sepolia.basescan.org/tx/0x642002f79b9a6ae4570c84f6b8d3c0a12a9f001304a7921e48f5eb7149aff852 |
+| gas fallback service | https://keeperhub-flightcheck-faucet.timjosh507.workers.dev |
+| upstream, keeperhub | [#2008](https://github.com/KeeperHub/keeperhub/pull/2008), [#2009](https://github.com/KeeperHub/keeperhub/pull/2009), [#2039](https://github.com/KeeperHub/keeperhub/pull/2039) |
+| upstream, cli | [#99](https://github.com/KeeperHub/cli/pull/99), [#100](https://github.com/KeeperHub/cli/pull/100) |
 | superseded | #2005 and #2006, closed by me, unmerged, never reviewed |
+
+Five open, none merged. #2008 and #2009 were reviewed on 2026-08-11 with changes requested, and
+every point was addressed on 2026-08-12; see the final section of
+[SUBMISSION-DELTA.md](SUBMISSION-DELTA.md).
 
 ## 4. Canonical evidence
 
@@ -136,15 +151,25 @@ run's unique challenge topic, so it is the chain's count and not our bookkeeping
 
 ## 8. Upstream
 
-**Current status, checked 2026-08-11.** Two PRs open and unmerged. Neither change is on
-`staging`. Two earlier PRs closed and unmerged.
+**Current status, checked 2026-08-12.** Five PRs open, none merged, and five is the ceiling. Two
+earlier PRs closed and unmerged.
 
 | PR | state | merged | what |
 |---|---|---|---|
-| [#2008](https://github.com/KeeperHub/keeperhub/pull/2008) | open | no | `unconfirmed` missing from the Direct Execution status list, 1 file, +11 |
-| [#2009](https://github.com/KeeperHub/keeperhub/pull/2009) | open | no | OpenAPI described as the REST schema when it contains no core REST path, 1 file, +1/-1 |
+| [keeperhub #2008](https://github.com/KeeperHub/keeperhub/pull/2008) | open, review addressed | no | `unconfirmed` missing from the Direct Execution status list. Review requested changes; the coverage artifact was regenerated, the same gap was fixed on the workflow-runs page, `system_error` was added after confirming it too was missing, and both pages now derive terminality from `X-Poll-Interval-Hint` |
+| [keeperhub #2009](https://github.com/KeeperHub/keeperhub/pull/2009) | open, review addressed | no | OpenAPI described as the REST schema when it contains no core REST path. The reviewer caught that the replacement named SIWX as a payment scheme and omitted MPP; rewritten against the live document |
+| [keeperhub #2039](https://github.com/KeeperHub/keeperhub/pull/2039) | open, mergeable | no | the Turnkey page called EOA funding required for any broadcasting workflow, contradicting its own sponsorship paragraph and the gas page it links to |
+| [cli #99](https://github.com/KeeperHub/cli/pull/99) | open, mergeable | no | `--wait` treated a `202 completed` with no transaction hash as terminal, and `X-Poll-Interval-Hint` was discarded for a hardcoded ticker |
+| [cli #100](https://github.com/KeeperHub/cli/pull/100) | open, mergeable | no | `--with-token` left the terminal echoing, so an organisation key was typed in plaintext and stayed in scrollback |
 | #2005 | closed | no | superseded by #2008 |
 | #2006 | closed | no | superseded by #2009 |
+
+**The two reviews are the most useful thing that happened upstream.** Both were specific, both
+were right, and one of them caught me replacing a false claim with a different false claim: #2009
+originally said the OpenAPI document covers "x402/SIWX payment schemes", and SIWX is a CAIP-122
+identity proof, not a payment scheme, while MPP, the one that would actually settle a call, was
+missing. Verified against the live document before rewriting: 121 operations, 78 paid, every one
+declaring both x402 and mpp, and zero carrying a per-operation `security` array.
 
 **Why #2005 and #2006 are closed, since a closed PR with no maintainer comment looks like a
 rejection.** It was not. I closed them. They were opened with a git identity not linked to your
@@ -167,14 +192,35 @@ can duplicate one.
 enumerated, and a half-understood PR against an execution CLI costs a maintainer more than it
 gives them. The standalone artifact already is that command.
 
+What did go into the Go CLI, later, were two narrow correctness fixes rather than a feature: #99
+and #100. Both are places where the official client diverged from KeeperHub's own documented safe
+execution contract, both were found by running the reference implementation against the live API,
+and each behavioural test was confirmed to fail against the old code before the fix went in.
+
+**Nothing further will be opened.** A sixth PR needs a new live reproducible bug, no overlapping
+work, a narrowly maintainable fix, and tests that prove the old behaviour fails, or a maintainer
+asking for it. `kh doctor`'s wallet message was a candidate and was dropped for exactly this
+reason: it could not be reproduced, and the probe says so rather than inferring
+(`evidence/probes/doctor-wallet-provisioning.md`).
+
 ## 9. Every public claim
 
-`CLAIMS.md` holds 41 rows, each mapped to evidence and a proof level: onchain, live-api,
-measured, automated, fixture, observed, or withdrawn. The README is not allowed to exceed it.
+*Updated 2026-08-12.* `CLAIMS.md` holds 79 rows, each mapped to evidence and a proof level:
+onchain, live-api, measured, automated, fixture, observed, or withdrawn. The README is not
+allowed to exceed it.
 
-One claim is struck through and marked **withdrawn**: `llms.txt` omitting the onboarding path.
-It was true when measured on Aug 10 and the docs were restructured before publication. It is
-published as withdrawn with both measurements rather than shipped or quietly deleted.
+Two claims have been withdrawn, and both are published as withdrawals rather than deleted.
+
+`llms.txt` omitting the onboarding path was true when measured on Aug 10 and had been fixed
+upstream before publication. It is struck through with both measurements recorded.
+
+The nonce claim is the more embarrassing one, because it was ours rather than a moving target.
+Every capsule, the proof page and three documents said a sponsored execution leaves the
+organisation wallet's nonce untouched. The clean-room wallet went from nonce 0 to 1 installing
+its EIP-7702 delegation. Row 59 now says the nonce is not a reliable detector in either
+direction, and deliberately claims no general pattern beyond the two wallets measured. Capsules
+written before the correction keep the old sentence, with the correction beside them in
+`evidence/manifest-notes.md`.
 
 ## 10. Limitations, stated in the README next to the claims they qualify
 
@@ -230,11 +276,17 @@ Full captured run in `evidence/final-gate-run.txt`. Eight gates, all passing:
 
 ## 13. Diff statistics
 
-55 tracked files. 5,000-odd lines of TypeScript, 150 of Solidity, 2,234 of documentation, 15
-evidence files. 113 tests, all passing, no network required, from a clean clone with no
-`npm install`.
+*Recounted 2026-08-12.* 89 tracked files. 8,866 lines of TypeScript, 150 of Solidity, 3,875 of
+markdown, 29 evidence files. 142 tests across 27 suites, all passing, no network required, from a
+clean clone with no `npm install`, re-verified from a fresh clone of the published repository.
 
 ## 14. DoraHacks submission draft
+
+> **Superseded.** Paste from `SUBMISSION-DELTA.md` instead: sections 1–5 for the current body,
+> then section 11 for everything after 2026-08-11. The draft below is kept because it is the
+> version the benchmark numbers were measured against, and because one line in it is now known to
+> be wrong: "a sponsored execution leaves the org wallet's explorer page empty" is true, but the
+> nonce claim that used to sit beside it was withdrawn.
 
 > **KeeperHub Flightcheck — onboarding now ends with an onchain fact**
 >
@@ -290,6 +342,16 @@ Target 2:15. Must make sense with the sound off, so every claim appears as text 
 
 The fault-recovery segment is mandatory and is the differentiator. Do not cut it for time.
 
+**Two shots added 2026-08-12**, inserted after 2:00 and pushing the close to about 2:35. Full
+wording in `SUBMISSION-DELTA.md` section 11e.
+
+| time | shot | on screen |
+|---|---|---|
+| +0:14 | `support <run-id>` on the run that stopped, showing the request-id table | "a failed run becomes something safe to send. Secrets included: none" |
+| +0:08 | the clean-room section of the proof page | "reproduced on an account that isn't ours" |
+
+Also update the 2:08 card: five PRs now, not two.
+
 ## 16. Two-minute judge verification path
 
 1. Open the proof page. Every figure on it is generated from `evidence/manifest.json`.
@@ -300,18 +362,33 @@ The fault-recovery segment is mandatory and is the differentiator. Do not cut it
    the capsule.
 4. `cast code <canary> | cast keccak` equals the pinned hash in `agent/src/config.ts`.
 5. `cd contracts && forge build` regenerates that same hash from source.
+6. Repeat steps 2 and 3 with the clean-room hash
+   `0x642002f79b9a6ae4570c84f6b8d3c0a12a9f001304a7921e48f5eb7149aff852`. Same canary, same event,
+   different organisation wallet, on an account with no relationship to ours.
 
 Nothing in that path requires trusting the repo, the page, or KeeperHub.
 
+Every step of it was re-run on 2026-08-12 as part of the final evidence sync, along with a
+secret scan over every tracked file, a scan of every blob in git history, a check that neither
+canonical transaction carries anything credential-shaped, and a fresh clone of the published
+repository running the whole suite with no install. The two published digests that look
+secret-shaped, an idempotency key and a canonical-body hash, were recomputed from public inputs
+to demonstrate they carry nothing.
+
 ## 17. What you must do before submitting
 
-1. **Rotate both credentials.** The `kh_` organisation key and the Etherscan key are in this
-   conversation's transcript.
-2. **Record the demo video.** Shot list above. This is the one deliverable I cannot produce.
-3. **Decide on the Go PR.** Not attempted, reasoning in section 8.
-4. **Submit on DoraHacks** at dorahacks.io/hackathon/bounty/1363 with the copy in section 14.
-   Not done, and will not be done without you.
-5. Optional: drain the deployer wallet.
+*Updated 2026-08-12. Item 3 is resolved: the Go work shipped as cli #99 and #100.*
+
+1. **Rotate four credentials.** Two `kh_` organisation keys, the Etherscan key, and the deployer
+   private key. All were pasted into an agent session. The faucet treasury key was never exposed
+   and does not need rotating.
+2. **Drain the deployer wallet** `0xE6b01781868Df2c1664F659476245175525Ae914`, roughly 0.4999
+   Base Sepolia ETH. Testnet funds, so this is tidiness rather than urgency.
+3. **Record the demo video.** Shot list in section 15, plus the two shots in `SUBMISSION-DELTA.md`
+   section 11e. This is the one deliverable I cannot produce.
+4. **Submit on DoraHacks** at dorahacks.io/hackathon/bounty/1363, pasting from
+   `SUBMISSION-DELTA.md` rather than from section 14 above. Not done, and will not be done
+   without you.
 
 ---
 

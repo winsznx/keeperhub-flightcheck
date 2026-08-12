@@ -401,6 +401,13 @@ docs/            teardown, threat model, failure codes, how verification works, 
 Claims are tracked against their evidence in [CLAIMS.md](CLAIMS.md). Nothing in this README is
 allowed to exceed that ledger.
 
+Two things the evidence set does not tidy away are recorded in
+[evidence/manifest-notes.md](evidence/manifest-notes.md): a canary transaction that has no capsule
+because the script that would have written it crashed, and a sentence about wallet nonces that
+every capsule written before 2026-08-12 still carries and that the clean-room run disproved. Both
+are left in place with the correction beside them, because an evidence set you can quietly rewrite
+is not evidence.
+
 Proof page, generated from the evidence manifest:
 [keeperhub-flightcheck.timjosh507.workers.dev](https://keeperhub-flightcheck.timjosh507.workers.dev)
 

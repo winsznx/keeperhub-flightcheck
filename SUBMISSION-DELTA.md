@@ -108,6 +108,8 @@ zero-balance wallet is the stronger demonstration.
 
 ## 6. Changed numbers
 
+*Point-in-time, 2026-08-11. Section 11 below carries the current figures.*
+
 | | before | now |
 |---|---|---|
 | tests | 84 | 115 |
@@ -161,6 +163,103 @@ the single-chain scope of the treasury.
 
 ---
 
+# 11. Final state, 2026-08-12
+
+Everything above stands. This section is what changed after it, and it is the section to paste
+from where the two disagree.
+
+## 11a. One more paragraph for Details
+
+> **When it fails, you get something to send.** A first run that breaks reaches a maintainer as
+> "it didn't work" plus a cropped screenshot, because the person reporting it cannot tell which
+> parts of their terminal are safe to paste. `npm run flightcheck -- support <run-id>` writes a
+> redacted diagnostic file built from an explicit field list, run through the same redactor the
+> proof capsule uses, with a writer that refuses to emit a file still tripping the leak detector.
+> Every KeeperHub request carries an `X-Request-Id` naming the run, the operation and the attempt,
+> so a ticket can say which call failed instead of roughly when. The command makes no network
+> request, needs no credential, and changes nothing it reads.
+
+## 11b. One more finding for the teardown list
+
+> A successful KeeperHub response carries no request id. `x-request-id` and a body `request_id`
+> appear only on a 404 route miss, and nothing echoes the header a client sends. The one response
+> that carries an id is the one where nothing happened. Measured across `/api/chains`, `/api/keys`
+> authenticated and not, `/api/execute/contract-call` and the status endpoint.
+
+## 11c. Independent reproduction, now first-class
+
+The clean-room run has a section on the proof page and in the evidence manifest rather than
+living only in `evidence/cleanroom/`. Worth naming in the submission because it answers the
+question a judge actually has, which is not "does it work for you".
+
+> A KeeperHub account created that morning, unrelated to ours. Fresh clone, no `.env`, no
+> `npm install`, `KEEPERHUB_API_KEY` unset, key typed into the hidden prompt over a real pty and
+> verified never echoed. Wallet at balance 0, nonce 0, no code. Verified in 7.4 seconds, sponsored,
+> faucet unused.
+>
+> [`0x642002f79b9a6ae4570c84f6b8d3c0a12a9f001304a7921e48f5eb7149aff852`](https://sepolia.basescan.org/tx/0x642002f79b9a6ae4570c84f6b8d3c0a12a9f001304a7921e48f5eb7149aff852),
+> execution `j6cjarjfr3obh6syblyjd`, org wallet `0xaa943223d9601cfa673a9a574b381864ec1a42ee`.
+
+## 11d. A published claim, withdrawn
+
+Say this rather than hide it. It is the second time the project has corrected itself in public and
+it is the part that makes the rest of the ledger worth anything.
+
+> Every proof capsule and the proof page said a sponsored execution leaves the organisation
+> wallet's nonce untouched. The clean-room wallet disproved it: nonce 0 → 1, because the first
+> sponsored execution installs the wallet's EIP-7702 delegation. The correct statement is narrower
+> and more useful: the nonce is not a reliable detector of sponsored execution in either
+> direction. The development wallet stayed at 1 across eight executions; the fresh one moved once
+> on its first. No general pattern is claimed beyond those two measurements. Capsules written
+> before the correction keep the old sentence verbatim, with the correction recorded beside them.
+
+## 11e. Two more demo shots
+
+Insert after the response-loss recovery, before the close:
+
+| time | shot | on screen |
+|---|---|---|
+| +0:14 | `support <run-id>` on the failed run from the failure segment, showing the request-id table and `Secrets included: none` | "a failed run becomes something safe to send" |
+| +0:08 | the clean-room section of the proof page | "reproduced on an account that isn't ours" |
+
+Still do not engineer a KeeperHub failure. The failure segment already uses a real stop.
+
+## 11f. Upstream, final
+
+Five PRs, none merged, and that is the ceiling. Two carry maintainer reviews with changes
+requested, both addressed on 2026-08-12.
+
+| PR | state |
+|---|---|
+| [keeperhub #2008](https://github.com/KeeperHub/keeperhub/pull/2008) | open, changes requested and addressed. Regenerated `specs/api-coverage.json`, carried the fix to `docs/api/executions.md` for workflow runs, added the missing `system_error` status found while there, and pointed terminality at `X-Poll-Interval-Hint` instead of at string matching |
+| [keeperhub #2009](https://github.com/KeeperHub/keeperhub/pull/2009) | open, changes requested and addressed. The reviewer caught that the replacement line named SIWX as a payment scheme and omitted MPP; verified against the live document (121 operations, 78 paid, all declaring x402 and mpp, 0 with a per-operation `security` array) and rewritten |
+| [keeperhub #2039](https://github.com/KeeperHub/keeperhub/pull/2039) | open, mergeable, no review yet |
+| [cli #99](https://github.com/KeeperHub/cli/pull/99) | open, mergeable. File overlap with #95 disclosed by us, with an offer to rebase |
+| [cli #100](https://github.com/KeeperHub/cli/pull/100) | open, mergeable, no review yet |
+
+## 11g. Current numbers
+
+| | 2026-08-11 | now |
+|---|---|---|
+| tests | 115 | 142 |
+| suites | 22 | 27 |
+| failure codes | 43 | 44 |
+| verified runs | 6 | 9 |
+| claim rows | 56 | 79 |
+| upstream PRs | 2 | 5 |
+
+## 11h. Not claimed, and worth saying out loud
+
+- No support capsule has been through a real KeeperHub ticket. What is claimed is what the file
+  contains and what it structurally cannot contain.
+- Whether KeeperHub can resolve a `cf-ray` on its end is theirs to say. It is what a successful
+  response actually carries.
+- `kh doctor` may or may not misreport a wallet during automatic provisioning. We looked, could
+  not reproduce it on the one fresh account available, and did not open a PR on an inference. The
+  probe is published with the reason.
+
+---
+
 ## Unchanged and still canonical
 
 | | |
@@ -170,4 +269,4 @@ the single-chain scope of the treasury.
 | canary | `0x2A6FC8182Bf9928Ef7517dA980dC79e8107c555A` |
 | repo | https://github.com/winsznx/keeperhub-flightcheck |
 | proof page | https://keeperhub-flightcheck.timjosh507.workers.dev |
-| upstream | #2008 and #2009, both open and unmerged |
+| upstream | five open, none merged: keeperhub #2008, #2009, #2039 and cli #99, #100 |

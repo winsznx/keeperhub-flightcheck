@@ -2,7 +2,13 @@
 
 *Historical record of the consistency pass on 2026-08-11, before the Bootstrap extension.
 Numbers here are correct as of that pass and are deliberately not updated. Current numbers live in
-`evidence/manifest.json` and `SUBMISSION-DELTA.md`.*
+`evidence/manifest.json` and in section 11 of `SUBMISSION-DELTA.md`, which is the state as of
+2026-08-12 after the clean-room reproduction and the support capsule.*
+
+*Two of the passes described below were run again on 2026-08-12 and are recorded there rather than
+here: the test count is now 142 across 27 suites, and the upstream section names five PRs instead
+of two. The withdrawn-claim sweep found one more thing to withdraw, the nonce claim, which is in
+`CLAIMS.md` row 59.*
 
 Consistency pass only. No features added, no product behaviour changed.
 
