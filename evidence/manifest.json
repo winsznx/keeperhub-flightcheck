@@ -1,6 +1,6 @@
 {
   "schema": "keeperhub-flightcheck/manifest/v1",
-  "generatedAt": "2026-08-12T09:38:41.547Z",
+  "generatedAt": "2026-08-12T13:07:19.091Z",
   "toolVersion": "0.1.0",
   "proofSchema": "keeperhub-flightcheck/v1",
   "canary": {
@@ -409,6 +409,81 @@
     "passed": 24,
     "total": 24,
     "pass": true
+  },
+  "upstream": {
+    "fetchedAt": "2026-08-12T13:07:32.465Z",
+    "stale": false,
+    "source": "GitHub REST, unauthenticated, at manifest generation time",
+    "total": 5,
+    "merged": 0,
+    "open": 5,
+    "prs": [
+      {
+        "repo": "KeeperHub/keeperhub",
+        "number": 2008,
+        "title": "Document execution terminality and the missing statuses",
+        "url": "https://github.com/KeeperHub/keeperhub/pull/2008",
+        "state": "open",
+        "merged": false,
+        "draft": false,
+        "mergeable": "unknown",
+        "reviewDecision": "CHANGES_REQUESTED",
+        "labels": [
+          "changes-requested"
+        ]
+      },
+      {
+        "repo": "KeeperHub/keeperhub",
+        "number": 2009,
+        "title": "Correct what the machine-readable API document covers",
+        "url": "https://github.com/KeeperHub/keeperhub/pull/2009",
+        "state": "open",
+        "merged": false,
+        "draft": false,
+        "mergeable": "unknown",
+        "reviewDecision": "CHANGES_REQUESTED",
+        "labels": [
+          "changes-requested",
+          "decision-needed"
+        ]
+      },
+      {
+        "repo": "KeeperHub/keeperhub",
+        "number": 2039,
+        "title": "Make wallet funding guidance sponsorship-aware",
+        "url": "https://github.com/KeeperHub/keeperhub/pull/2039",
+        "state": "open",
+        "merged": false,
+        "draft": false,
+        "mergeable": "unknown",
+        "reviewDecision": null,
+        "labels": []
+      },
+      {
+        "repo": "KeeperHub/cli",
+        "number": 99,
+        "title": "Reconcile completed writes that carry no transaction hash",
+        "url": "https://github.com/KeeperHub/cli/pull/99",
+        "state": "open",
+        "merged": false,
+        "draft": false,
+        "mergeable": "unstable",
+        "reviewDecision": null,
+        "labels": []
+      },
+      {
+        "repo": "KeeperHub/cli",
+        "number": 100,
+        "title": "Hide interactive API-key input",
+        "url": "https://github.com/KeeperHub/cli/pull/100",
+        "state": "open",
+        "merged": false,
+        "draft": false,
+        "mergeable": "unstable",
+        "reviewDecision": null,
+        "labels": []
+      }
+    ]
   },
   "stateMachine": [
     {

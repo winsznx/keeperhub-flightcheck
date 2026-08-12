@@ -39,7 +39,114 @@ function readJson<T>(path: string): T | null {
   }
 }
 
-function main(): void {
+/**
+ * The five upstream contributions, with their state read from GitHub at generation time.
+ *
+ * Hardcoding "open" or "mergeable" into the page is how a site ends up claiming something is
+ * still under review a week after it was closed, or worse, implying a merge that never happened.
+ * The public API needs no credential for public repositories.
+ *
+ * A failed fetch keeps whatever the previous manifest recorded rather than inventing a state, and
+ * marks the block stale so the page can say so instead of quietly showing old data as current.
+ */
+const UPSTREAM: ReadonlyArray<{ repo: string; number: number; title: string }> = [
+  { repo: "KeeperHub/keeperhub", number: 2008, title: "Document execution terminality and the missing statuses" },
+  { repo: "KeeperHub/keeperhub", number: 2009, title: "Correct what the machine-readable API document covers" },
+  { repo: "KeeperHub/keeperhub", number: 2039, title: "Make wallet funding guidance sponsorship-aware" },
+  { repo: "KeeperHub/cli", number: 99, title: "Reconcile completed writes that carry no transaction hash" },
+  { repo: "KeeperHub/cli", number: 100, title: "Hide interactive API-key input" },
+];
+
+interface UpstreamRow {
+  repo: string;
+  number: number;
+  title: string;
+  url: string;
+  state: string;
+  merged: boolean;
+  draft: boolean;
+  mergeable: string | null;
+  reviewDecision: string | null;
+  labels: string[];
+}
+
+async function fetchUpstream(previous: unknown): Promise<Record<string, unknown>> {
+  const rows: UpstreamRow[] = [];
+  let ok = true;
+
+  for (const pr of UPSTREAM) {
+    try {
+      const get = async (): Promise<Record<string, unknown>> => {
+        const res = await fetch(`https://api.github.com/repos/${pr.repo}/pulls/${pr.number}`, {
+          headers: { accept: "application/vnd.github+json", "user-agent": "keeperhub-flightcheck" },
+        });
+        if (!res.ok) throw new Error(String(res.status));
+        return (await res.json()) as Record<string, unknown>;
+      };
+      let j = await get();
+      // GitHub computes mergeability in the background and answers `unknown` while it does,
+      // which would render as a PR that mysteriously has no state. One re-poll settles it.
+      if (j.mergeable_state === "unknown") {
+        await new Promise((r) => setTimeout(r, 1500));
+        j = await get();
+      }
+      // reviewDecision is a GraphQL field. Derive the same signal from the reviews list.
+      let reviewDecision: string | null = null;
+      try {
+        const rv = await fetch(
+          `https://api.github.com/repos/${pr.repo}/pulls/${pr.number}/reviews`,
+          { headers: { accept: "application/vnd.github+json", "user-agent": "keeperhub-flightcheck" } },
+        );
+        if (rv.ok) {
+          const reviews = (await rv.json()) as Array<{ state: string }>;
+          const states = reviews.map((r) => r.state);
+          reviewDecision = states.includes("CHANGES_REQUESTED")
+            ? "CHANGES_REQUESTED"
+            : states.includes("APPROVED")
+              ? "APPROVED"
+              : null;
+        }
+      } catch {
+        // A missing review list is not a reason to drop the PR row.
+      }
+      rows.push({
+        repo: pr.repo,
+        number: pr.number,
+        title: pr.title,
+        url: String(j.html_url ?? `https://github.com/${pr.repo}/pull/${pr.number}`),
+        state: String(j.state ?? "unknown"),
+        merged: j.merged === true,
+        draft: j.draft === true,
+        mergeable: typeof j.mergeable_state === "string" ? j.mergeable_state : null,
+        reviewDecision,
+      labels: Array.isArray(j.labels) ? (j.labels as Array<{ name?: string }>).map((l) => String(l.name ?? "")) : [],
+      });
+    } catch {
+      ok = false;
+    }
+  }
+
+  if (!ok || rows.length !== UPSTREAM.length) {
+    const prev = previous as Record<string, unknown> | null;
+    if (prev?.prs) {
+      process.stdout.write("upstream: GitHub unreachable, keeping the previous manifest block\n");
+      return { ...prev, stale: true };
+    }
+    return { fetchedAt: null, stale: true, prs: rows, merged: rows.filter((r) => r.merged).length };
+  }
+
+  return {
+    fetchedAt: new Date().toISOString(),
+    stale: false,
+    source: "GitHub REST, unauthenticated, at manifest generation time",
+    total: rows.length,
+    merged: rows.filter((r) => r.merged).length,
+    open: rows.filter((r) => r.state === "open").length,
+    prs: rows,
+  };
+}
+
+async function main(): Promise<void> {
   const runsDir = resolve(REPO_ROOT, "evidence", "runs");
   const capsules: CapsuleLike[] = existsSync(runsDir)
     ? readdirSync(runsDir)
@@ -190,6 +297,11 @@ function main(): void {
       resolve(REPO_ROOT, "evidence", "faucet", "live-acceptance.json"),
     ),
 
+    upstream: await fetchUpstream(
+      readJson<Record<string, unknown>>(resolve(REPO_ROOT, "evidence", "manifest.json"))?.upstream ??
+        null,
+    ),
+
     stateMachine: STAGES.map((s) => ({
       stage: s,
       label: STAGE_LABEL[s],
@@ -207,9 +319,12 @@ function main(): void {
   );
   writeFileSync(resolve(REPO_ROOT, "docs", "failure-codes.md"), renderFailureDoc());
 
+  const up = manifest.upstream as Record<string, unknown>;
   process.stdout.write(
     `manifest: ${verified.length} verified run(s), canonical ${manifest.canonicalRun?.transactionHash ?? "none"}\n` +
-      `failure reference: ${Object.keys(FAILURES).length} codes\n`,
+      `failure reference: ${Object.keys(FAILURES).length} codes\n` +
+      `upstream: ${(up.prs as unknown[]).length} PR(s), ${up.merged} merged` +
+      `${up.stale ? " (stale, GitHub unreachable)" : ""}\n`,
   );
 }
 
@@ -275,4 +390,4 @@ function renderFailureDoc(): string {
   return lines.join("\n");
 }
 
-main();
+await main();

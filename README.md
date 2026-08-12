@@ -321,9 +321,12 @@ These are real and they sit here rather than in a footnote.
 - **Gas sponsorship is reported, never promised.** Every run records the `sponsored` flag it
   observed. On our runs it was `true` and the org wallet paid nothing. That is an observation
   about this organisation on this chain, not a guarantee about yours.
-- **The sender assertion is scoped to what was measured.** `msg.sender == org wallet` is enforced
-  only when `sponsored` is true, because that is the path we measured. The non-sponsored path is
-  unmeasured and the capsule records it as `recorded-not-asserted`.
+- **The sender assertion runs, but only one path has been measured.** `msg.sender == org wallet`
+  fails the run closed whenever the organisation wallet is known, regardless of what the
+  `sponsored` flag says. An earlier version gated the check on that flag, which meant the party
+  being verified could switch the check off; an audit caught it. What remains unmeasured is
+  whether the equality holds on the non-sponsored path, and the capsule records
+  `org-wallet-unknown-not-asserted` when the wallet could not be resolved at all.
 - **One canary, one chain.** Extending to another chain means deploying and pinning another
   canary, and another faucet treasury.
 - **The gas fallback is fixture-tested at the KeeperHub end.** The faucet itself is live-tested
