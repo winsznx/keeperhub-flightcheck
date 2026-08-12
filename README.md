@@ -153,8 +153,10 @@ event sender   0xfd35ae93…d834c   the org wallet
 
 The org wallet neither sent nor paid for that transaction, and it held zero ETH throughout. Open
 it on Basescan and its transaction list shows nothing. Only hash → receipt → decoded log finds it.
-Any verifier that checks a wallet's nonce, balance or txlist concludes, wrongly, that nothing
-happened.
+Balance and txlist both conclude, wrongly, that nothing happened, and the nonce is no better: the
+clean-room wallet moved 0→1 installing its EIP-7702 delegation on its first sponsored execution
+while this one stayed at 1 across eight, so a single increment can sit behind any number of
+transactions.
 
 ## The state machine
 
@@ -225,11 +227,56 @@ npm run flightcheck                       # preflight, broadcasts nothing
 npm run flightcheck -- --execute          # one zero-value call to the pinned canary
 npm run flightcheck -- --resume <run-id>  # recover a run whose response was lost
 npm run flightcheck -- status             # list persisted runs
+npm run flightcheck -- support <run-id>   # redacted diagnostic file for a support ticket
 npm run --silent flightcheck -- --json    # machine-readable capsule, pipeable into jq
 npm run flightcheck -- setup --execute    # guided first run, no .env needed
-npm test                                  # 115 tests, no network required
+npm test                                  # 142 tests, no network required
 npm run evidence                          # regenerate evidence/manifest.json by hand
 ```
+
+## When it fails, you get something to send
+
+A first run that breaks reaches a maintainer as "it didn't work" plus a cropped screenshot,
+because the person reporting it cannot tell which parts of their terminal are safe to paste. They
+are right to be careful. Their organisation key is three lines up.
+
+```bash
+npm run flightcheck -- support fc_42f39246-d384-481e-8d73-ed4858ef4ab6
+```
+
+```
+  Support capsule written
+  evidence/support/flightcheck-support-fc_42f39246-d384-481e-8d73-ed4858ef4ab6.json
+
+  Safe to attach to a KeeperHub support ticket.
+
+  Execution
+    iczn2rm0veqe410xy8ax9
+
+  Last confirmed stage
+    PROOF_WRITTEN
+
+  KeeperHub request IDs
+    authenticate   fc_42f39246d384_authenticate_1
+    resolveWallet  fc_42f39246d384_resolvewallet_1
+    simulate       fc_42f39246d384_simulate_1
+    execute        fc_42f39246d384_execute_1
+    settle         fc_42f39246d384_settle_1
+
+  Secrets included
+    none
+```
+
+Every KeeperHub request carries an `X-Request-Id` naming the run, the operation and the attempt,
+so a ticket can say which call failed instead of roughly when. The capsule is built from an
+explicit field list and then run through the same redactor the proof capsule uses, and the writer
+refuses to emit a file that still trips the leak detector. The command makes no network request,
+needs no credential, and changes nothing it reads.
+
+Measured while building it: a successful KeeperHub response carries no request id at all.
+`x-request-id` appears only on a 404 route miss, and nothing echoes the header we send, so the
+capsule records `cf-ray` and labels where each id came from. Details in
+[docs/support.md](docs/support.md).
 
 ## Safety
 
@@ -308,7 +355,7 @@ The teardown records both measurements rather than dropping it.
 
 ## Upstream
 
-Four PRs open against KeeperHub, all from findings this project proved with real transactions.
+Five PRs open against KeeperHub, all from findings this project proved with real transactions.
 None is merged, and nothing here depends on them being merged.
 
 **KeeperHub/cli**
@@ -329,6 +376,10 @@ None is merged, and nothing here depends on them being merged.
   status, which is live but missing from the Direct Execution status list
 - [#2009](https://github.com/KeeperHub/keeperhub/pull/2009) corrects what the OpenAPI document is
   described as covering
+- [#2039](https://github.com/KeeperHub/keeperhub/pull/2039) the Turnkey page said funding the EOA
+  "is required for any workflow that broadcasts a transaction", contradicting its own sponsorship
+  paragraph eight lines above and the gas page it links to. Our sponsored runs landed from a
+  zero-balance wallet, so a reader following that sentence funds an address for nothing
 
 The two CLI fixes are the ones worth reading. Both are places where the official client diverged
 from KeeperHub's own documented safe-execution contract, and we found them by building the
@@ -338,12 +389,13 @@ reference implementation and running it against the live API.
 
 ```
 agent/src/       state machine, KeeperHub client, independent verifier, proof writer,
-                 bootstrap, gas policy, faucet client
+                 bootstrap, gas policy, faucet client, support capsule
 faucet/          the Base Sepolia gas fallback Worker (separate service, own dependencies)
-agent/tests/     115 tests plus the live fault-injection acceptance test
+agent/tests/     142 tests plus the live fault-injection acceptance test
 contracts/       the canary, its Foundry tests, and the deploy script
-evidence/        proof capsules, the recovery log, the benchmark, the build manifest
-docs/            teardown, threat model, failure codes, how verification works
+evidence/        proof capsules, support capsules, the recovery log, the benchmark,
+                 the build manifest
+docs/            teardown, threat model, failure codes, how verification works, support
 ```
 
 Claims are tracked against their evidence in [CLAIMS.md](CLAIMS.md). Nothing in this README is

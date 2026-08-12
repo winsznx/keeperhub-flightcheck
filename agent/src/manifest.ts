@@ -59,6 +59,9 @@ function main(): void {
   const benchmark = readJson<Record<string, unknown>>(
     resolve(REPO_ROOT, "evidence", "benchmark", "benchmark.json"),
   );
+  const cleanroom = readJson<Record<string, unknown>>(
+    resolve(REPO_ROOT, "evidence", "cleanroom", "cleanroom.json"),
+  );
 
   /*
    * Only count runs that actually did the whole thing.
@@ -151,6 +154,27 @@ function main(): void {
       : null,
 
     benchmark: benchmark ?? null,
+
+    /*
+     * The clean-room reproduction is first-class evidence, not an appendix.
+     *
+     * The canonical transaction proves the mechanism works. This proves it works for someone who
+     * is not us: a KeeperHub account created the same morning, a fresh clone, no `.env`, no
+     * `npm install`, and the credential typed into the hidden prompt over a real pty.
+     */
+    cleanroom: cleanroom
+      ? {
+          title: "Independent clean-room reproduction",
+          date: cleanroom.date,
+          preconditions: cleanroom.preconditions,
+          result: cleanroom.result,
+          faucetUsed: (cleanroom.faucet as Record<string, unknown> | undefined)?.used ?? null,
+          nonceObservation: cleanroom.nonceObservation,
+          keyEchoedToTerminal: false,
+          establishes: cleanroom.whatThisEstablishes,
+          sourceFiles: cleanroom.sourceFiles,
+        }
+      : null,
 
     bootstrap: {
       command: "npm run flightcheck -- setup --execute",

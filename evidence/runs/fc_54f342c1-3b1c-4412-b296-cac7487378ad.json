@@ -1,0 +1,107 @@
+{
+  "schema": "keeperhub-flightcheck/v1",
+  "toolVersion": "0.1.0",
+  "runId": "fc_54f342c1-3b1c-4412-b296-cac7487378ad",
+  "outcome": "verified",
+  "stageReached": "PROOF_WRITTEN",
+  "stoppedAt": null,
+  "failureCode": null,
+  "createdAt": "2026-08-12T09:10:53.090Z",
+  "completedAt": "2026-08-12T09:11:02.355Z",
+  "chain": {
+    "chainId": 84532,
+    "name": "Base Sepolia",
+    "isTestnet": true
+  },
+  "wallet": {
+    "orgWallet": "0xfd35ae935de7be93ffd585d6627268d833ed834c",
+    "signerMode": "eoa",
+    "note": "The organisation wallet KeeperHub executes from, resolved from GET /api/user. It is not the address a user signs in with."
+  },
+  "canary": {
+    "address": "0x2A6FC8182Bf9928Ef7517dA980dC79e8107c555A",
+    "abiVersion": "1",
+    "expectedRuntimeBytecodeHash": "0x753157870ee9e692c7e35e0890fad801fd30fc4674a74a62a7526758da649dd0",
+    "observedRuntimeBytecodeHash": "0x753157870ee9e692c7e35e0890fad801fd30fc4674a74a62a7526758da649dd0",
+    "match": true,
+    "eventSignature": "Flightcheck(address,bytes32,uint256)",
+    "eventTopic0": "0x4947ef22330e8e81cdedf82c33d366e9c942511f5edf79140686b33af9de7f33"
+  },
+  "challenge": "0x8b273e400331d7aacc31bcdaaa71c22c1af58d8e4434a0186bb9c26e21441c97",
+  "idempotency": {
+    "key": "<redacted:RAW_64_HEX>",
+    "requestBodyHash": "sha256:<redacted:RAW_64_HEX>",
+    "replayed": false,
+    "attempts": 1,
+    "conflicts": 0,
+    "persistedBeforeSend": true
+  },
+  "simulation": {
+    "passed": true,
+    "wouldRevert": false,
+    "from": "0xfd35ae935de7be93ffd585d6627268d833ed834c",
+    "to": "0x2A6FC8182Bf9928Ef7517dA980dC79e8107c555A",
+    "gasEstimate": "23929"
+  },
+  "execution": {
+    "id": "f5u0js5xqzyjno3gbkwz1",
+    "serverStatus": "completed",
+    "normalizedState": "COMPLETED",
+    "sponsored": true,
+    "type": "contract-call",
+    "pollCount": 1,
+    "terminal": true,
+    "transactionHashInPostBody": false
+  },
+  "transaction": {
+    "hash": "0xfd8fb2dc11b41f0bd203d3d1f6bf2303af10ace4da6e8e854c7d54278c58746b",
+    "link": "https://sepolia.basescan.org/tx/0xfd8fb2dc11b41f0bd203d3d1f6bf2303af10ace4da6e8e854c7d54278c58746b"
+  },
+  "keeperhubReceipt": {
+    "verified": true,
+    "receiptStatus": "success",
+    "blockNumber": 45378786,
+    "gasUsed": "45877"
+  },
+  "independentVerification": {
+    "rpcOrigin": "https://sepolia.base.org",
+    "rpcChainId": 84532,
+    "receiptStatusHex": "0x1",
+    "blockNumber": 45378786,
+    "transactionFrom": "0xdcf4bac4bd805948168ff63483bc493894a29613",
+    "transactionTo": "0x5af5194b4b0909eb978e3cf1e25333852277f07d",
+    "event": {
+      "emitter": "0x2a6fc8182bf9928ef7517da980dc79e8107c555a",
+      "topic0": "0x4947ef22330e8e81cdedf82c33d366e9c942511f5edf79140686b33af9de7f33",
+      "sender": "0xfd35ae935de7be93ffd585d6627268d833ed834c",
+      "challenge": "0x8b273e400331d7aacc31bcdaaa71c22c1af58d8e4434a0186bb9c26e21441c97",
+      "chainId": 84532
+    },
+    "challengeMatches": true,
+    "chainIdMatches": true,
+    "emittedByPinnedCanary": true,
+    "senderAssertion": "asserted-and-matched",
+    "sponsoredReportedByKeeperHub": true,
+    "senderMatchesOrgWallet": true,
+    "note": "Verified by transaction hash, then receipt, then decoded log, never from wallet state. Under sponsorship the org wallet's native balance does not change, and its nonce is not a reliable detector either: a wallet whose EIP-7702 delegation is not yet installed consumes one nonce on its first sponsored execution, while later executions from an already-delegated wallet consume none."
+  },
+  "agreement": {
+    "keeperhubReportsCompleted": true,
+    "publicTransactionLanded": true,
+    "independentEventMatches": true,
+    "sameTransactionHash": true,
+    "allLegsAgree": true
+  },
+  "timingsMs": {
+    "authenticate": 1308,
+    "resolveWallet": 487,
+    "resolveChain": 484,
+    "verifyCanary": 1744,
+    "simulate": 472,
+    "execute": 3128,
+    "settle": 934,
+    "verifyReceipt": 671,
+    "verifyEvent": 0,
+    "total": 9228
+  }
+}

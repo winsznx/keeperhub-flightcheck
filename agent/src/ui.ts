@@ -155,6 +155,63 @@ export function unconfirmed(opts: { runId: string; txHash: string | null; reason
   out();
 }
 
+export function support(opts: {
+  path: string;
+  executionId: string | null;
+  stageReached: string;
+  failureCode: string | null;
+  requestIds: ReadonlyArray<{ stage: string; ids: readonly string[] }>;
+  transactionHash: string | null;
+}): void {
+  out();
+  out(c.bold("  Support capsule written"));
+  out(`  ${opts.path}`);
+  out();
+  out(c.green("  Safe to attach to a KeeperHub support ticket."));
+  out();
+  out(c.dim("  Execution"));
+  out(`    ${opts.executionId ?? "none observed"}`);
+  out();
+  out(c.dim("  Last confirmed stage"));
+  out(`    ${opts.stageReached}`);
+  if (opts.failureCode) {
+    out();
+    out(c.dim("  Stopped with"));
+    out(`    ${opts.failureCode}`);
+  }
+  if (opts.transactionHash) {
+    out();
+    out(c.dim("  Transaction"));
+    out(`    ${opts.transactionHash}`);
+  }
+  out();
+  out(c.dim("  KeeperHub request IDs"));
+  if (opts.requestIds.length) {
+    const width = Math.max(...opts.requestIds.map((g) => g.stage.length));
+    for (const group of opts.requestIds) {
+      // Retries share an operation, so every id is listed rather than only the first. Which
+      // attempt failed is usually the question.
+      for (const [i, id] of group.ids.entries()) {
+        out(`    ${(i === 0 ? group.stage : "").padEnd(width)}  ${id}`);
+      }
+    }
+  } else {
+    out(c.dim("    none recorded, so this run either made no KeeperHub request or predates"));
+    out(c.dim("    request correlation. Re-run to get ids a maintainer can look up."));
+  }
+  out();
+  out(c.dim("  Secrets included"));
+  out("    none");
+  out();
+  out(
+    c.dim(
+      "  Nothing was uploaded. There is no telemetry in this tool and no submission endpoint.\n" +
+        "  Attach the file yourself, or don't.",
+    ),
+  );
+  out();
+}
+
 function wrap(text: string, width: number): string[] {
   const lines: string[] = [];
   for (const paragraph of text.split("\n")) {

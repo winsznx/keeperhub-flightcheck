@@ -167,7 +167,7 @@ export function buildCapsule(result: RunResult, rpcUrl: string): ProofCapsule {
                 : "asserted-and-failed",
           sponsoredReportedByKeeperHub: status?.sponsored ?? null,
           senderMatchesOrgWallet: result.senderMatchesOrgWallet,
-          note: "Verified by transaction hash, then receipt, then decoded log. A sponsored execution leaves the org wallet's nonce and balance untouched, so wallet-level checks would find nothing.",
+          note: "Verified by transaction hash, then receipt, then decoded log, never from wallet state. Under sponsorship the org wallet's native balance does not change, and its nonce is not a reliable detector either: a wallet whose EIP-7702 delegation is not yet installed consumes one nonce on its first sponsored execution, while later executions from an already-delegated wallet consume none.",
         }
       : null,
 

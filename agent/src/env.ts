@@ -78,6 +78,17 @@ export function classifyKey(raw: string | undefined): KeyKind {
   return "unknown";
 }
 
+/**
+ * Where run records live.
+ *
+ * Overridable because the default sits inside the checkout, and a checkout can be read-only, or
+ * shared between two KeeperHub organisations that should not see each other's runs.
+ */
+export function stateDirFor(root: string = REPO_ROOT): string {
+  const override = process.env.FLIGHTCHECK_STATE_DIR?.trim();
+  return override ? resolve(override) : resolve(root, ".keeperhub", "flightcheck");
+}
+
 export function loadEnv(root: string = REPO_ROOT): Env {
   loadDotenv(root);
   registerEnvSecrets();
@@ -99,7 +110,7 @@ export function loadEnv(root: string = REPO_ROOT): Env {
     apiKey: raw!.trim(),
     chainId: Number.isFinite(chainId) ? chainId : BASE_SEPOLIA.chainId,
     rpcUrl,
-    stateDir: resolve(root, ".keeperhub", "flightcheck"),
+    stateDir: stateDirFor(root),
     evidenceDir: resolve(root, "evidence", "runs"),
   };
 }

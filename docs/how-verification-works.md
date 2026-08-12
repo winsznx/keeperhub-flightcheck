@@ -38,17 +38,22 @@ The org wallet did not send the transaction and did not pay for it. Open it on B
 transaction list is empty, while a transaction sits in block 45339897 doing exactly what was asked.
 
 The nonce deserves its own paragraph, because an earlier version of this document said it "did not
-move" and that was wrong. It moves exactly once. The organisation wallet is an EIP-7702 delegated
-account, and the first sponsored execution installs the delegation, which consumes one nonce:
+move" and that was wrong. **The organisation-wallet nonce is not a reliable detector of sponsored
+execution.** The organisation wallet is an EIP-7702 delegated account, and installing that
+delegation consumes a nonce:
 
 ```
-before the first run   nonce 0   balance 0   code 0x
-after the first run    nonce 1   balance 0   code 0xef0100955d84139e7621bc571b117d8eb5d28a4a222c6f
+clean-room wallet, before its first run   nonce 0   balance 0   code 0x
+clean-room wallet, after                  nonce 1   balance 0   code 0xef0100955d84139e7621bc571b117d8eb5d28a4a222c6f
+development wallet, across 8 executions   nonce 1   balance 0   same delegation
 ```
 
-It then stays there. The development wallet has made 8 canary executions and its nonce is still 1;
-a second organisation wallet, used once, is also at 1. So the nonce is worse than a null signal, it
-is a misleading one: a verifier sees a single increment behind any number of transactions.
+So the clean-room wallet moved from 0 to 1 when its delegation was installed on its first
+sponsored execution, and the development wallet remained at 1 across later sponsored canary
+executions. Two observations, and they disagree about whether the nonce moves. That is the whole
+point: a verifier reading the nonce sees a single increment sitting behind an unknown number of
+transactions, and gets a different answer depending on which execution it happened to look at. We
+do not claim a general rule beyond those two measurements.
 
 Balance is the reliable negative. It never changes, because the relayer pays.
 

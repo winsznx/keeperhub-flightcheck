@@ -70,8 +70,17 @@ export interface RunResult {
 
 export async function runFlightcheck(opts: RunOptions): Promise<RunResult> {
   const timings: Record<string, number> = {};
+  /*
+   * Times an operation, and tags every request it makes with its name.
+   *
+   * The tag is the operation rather than the last completed stage, because those are different
+   * answers to the question a support reader is asking. The simulate call happens while the run
+   * has only reached CANARY_VERIFIED, so tagging by stage would label it with the step before
+   * the one that produced it. `simulate` says what the request was for.
+   */
   const mark = async <T>(name: string, fn: () => Promise<T>): Promise<T> => {
     const t = Date.now();
+    kh.stage = name;
     try {
       return await fn();
     } finally {
@@ -81,7 +90,11 @@ export async function runFlightcheck(opts: RunOptions): Promise<RunResult> {
 
   const deployment = deploymentFor(opts.chainId) ?? BASE_SEPOLIA;
   const store = new RunStore(opts.stateDir);
-  const kh = new KeeperHubClient(opts.apiKey, { baseUrl: opts.baseUrl, transport: opts.transport });
+  const kh = new KeeperHubClient(opts.apiKey, {
+    baseUrl: opts.baseUrl,
+    transport: opts.transport,
+    runId: opts.resumeRunId ?? undefined,
+  });
   const rpc = new Rpc(opts.rpcUrl);
 
   let stage: Stage = "START";
@@ -130,6 +143,12 @@ export async function runFlightcheck(opts: RunOptions): Promise<RunResult> {
     };
   }
 
+  // The client tags every request with the run and the stage that caused it, so a support
+  // capsule can say which step a KeeperHub request id belongs to. The record exists by now for
+  // both a fresh run and a resume.
+  kh.runId = record.runId;
+  kh.stage = "start";
+
   const advance = (next: Stage, detail?: string) => {
     stage = next;
     record.stageReached = next;
@@ -140,10 +159,25 @@ export async function runFlightcheck(opts: RunOptions): Promise<RunResult> {
     outcome: RunResult["outcome"],
     error: FlightcheckError | null = null,
   ): RunResult => {
+    // Correlation ids are diagnostics, not secrets, and they are most useful when the run failed.
+    record.httpTrace = kh.traces.map((tr) => ({
+      stage: tr.stage ?? "unknown",
+      method: tr.method,
+      path: tr.path,
+      status: tr.status,
+      elapsedMs: tr.elapsedMs,
+      sentRequestId: tr.sentRequestId ?? null,
+      serverRequestId: tr.requestId ?? null,
+      serverRequestIdSource: tr.requestIdSource ?? null,
+    }));
     // Persist the final stage so `status` describes where the run actually ended rather than
-    // wherever it happened to be at the last mid-run save. Only for runs that got as far as
-    // persisting a request; a preflight sent nothing and should leave no record behind.
-    if (record.idempotencyKey) {
+    // wherever it happened to be at the last mid-run save.
+    //
+    // A run that stopped is saved even if it never reached the point of persisting a request,
+    // because that is precisely the run someone needs help with: `support <run-id>` has nothing
+    // to read otherwise, and "it failed at authentication" is the most common first-run report
+    // there is. A clean preflight sent nothing and still leaves no record behind.
+    if (record.idempotencyKey || error !== null) {
       try {
         store.save(record);
       } catch {

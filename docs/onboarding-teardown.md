@@ -172,9 +172,9 @@ Also worth recording, because we had to measure it: under sponsorship `msg.sende
 called contract is still the org wallet, even though the paying EOA and the top-level callee are
 both KeeperHub infrastructure. Measured on two independent organisations.
 
-And the nonce behaves in a way that actively misleads. The organisation wallet is an EIP-7702
-delegated account, so the first sponsored execution installs the delegation and consumes exactly
-one nonce, then never moves again:
+The nonce half of that quote is where it gets sharp, because we measured it moving. The
+organisation wallet is an EIP-7702 delegated account, and installing the delegation consumes a
+nonce:
 
 ```
 fresh wallet, before   nonce 0   balance 0   code 0x
@@ -182,7 +182,15 @@ fresh wallet, after    nonce 1   balance 0   code 0xef0100955d84…222c6f
 dev wallet, 8 runs     nonce 1   balance 0   same delegation
 ```
 
-A builder checking "did my wallet do anything" sees one increment covering eight transactions.
+The clean-room wallet moved from 0 to 1 on its first sponsored execution; the development wallet
+stayed at 1 across later ones. So "a sponsored execution does not change your EOA's nonce" holds
+for the second case and not the first, and a builder checking "did my wallet do anything" can see
+one increment covering eight transactions, or one increment covering one. Balance is the reliable
+negative here. The nonce is not a reliable detector in either direction, which is a stronger and
+more useful thing to tell a reader than "it does not change".
+
+**Proposed fix.** Say the nonce is unreliable rather than static, and mention the delegation
+install, since a fresh organisation hits that case on its very first execution.
 Balance is the only wallet-level field that stays honest, and it stays at zero throughout.
 
 **How Flightcheck handles it.** Verification is always hash → receipt → decoded log, never
@@ -280,6 +288,40 @@ carries neither. A client that logs `detail` and `request_id` prints `undefined`
 new builder most needs something to paste into a support request.
 
 **Proposed fix.** Include `request_id` on auth failures.
+
+---
+
+## 9a. There is no request id on a response that worked
+
+**Grade: VERIFIED LIVE, 2026-08-12**
+
+The 404 above is the only place a request id shows up. We sent an `X-Request-Id` on every call
+and listed the response headers:
+
+```
+GET  /api/chains            200 -> no x-request-id, cf-ray present
+GET  /api/keys        (auth) 200 -> no x-request-id, cf-ray present
+GET  /api/keys     (no auth) 401 -> no x-request-id, cf-ray present
+POST /api/execute/contract-call 202 -> no x-request-id, cf-ray present
+GET  /api/…/status          200 -> no x-request-id, cf-ray present
+GET  /api/definitely-not-a-route 404 -> x-request-id AND body request_id
+```
+
+None of them echo the `X-Request-Id` we sent. So a builder whose execution completed but landed
+in a state they do not understand, which is the case where "here is my execution id, what
+happened" is the whole support ticket, has no request id to quote, and neither does the
+maintainer reading it. The one case that does return an id is the case where nothing happened at
+all: a route that does not exist.
+
+**How Flightcheck handles it.** It sends its own `X-Request-Id` on every request anyway, so the
+ids exist client-side and become correct the day KeeperHub honours them. For the server side it
+records `cf-ray`, which is present on every response and is at least resolvable in Cloudflare's
+logs. The colo suffix is stripped, because the datacentre is a location hint about whoever files
+the ticket and the hex identifies the request without it. `support` prints which source each id
+came from, so nobody reads a ray id as something KeeperHub issued.
+
+**Proposed fix.** Echo an inbound `X-Request-Id`, and emit one on every response, not only on a
+404.
 
 ---
 

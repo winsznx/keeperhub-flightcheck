@@ -48,7 +48,7 @@
     "balanceBefore": "0",
     "balanceAfter": "0",
     "codeAfter": "0xef0100955d84139e7621bc571b117d8eb5d28a4a222c6f",
-    "note": "The organisation wallet is an EIP-7702 delegated account. The first sponsored execution installs the delegation, which consumes exactly one nonce. The development wallet has made 8 canary executions and its nonce is also 1, so the nonce moves once and never again."
+    "note": "The organisation-wallet nonce is not a reliable detector of sponsored execution. This wallet is an EIP-7702 delegated account and moved from nonce 0 to 1 when its delegation was installed on its first sponsored execution; the development wallet remained at nonce 1 across later sponsored canary executions. No general transition pattern is claimed beyond these two observations."
   },
   "sourceFiles": {
     "terminalTranscript": "evidence/cleanroom/run-output.txt",

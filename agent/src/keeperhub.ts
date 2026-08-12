@@ -74,12 +74,61 @@ export interface ExecutionStatus {
   readonly raw: Record<string, unknown>;
 }
 
+export type RequestIdSource = "x-request-id" | "request_id" | "cf-ray";
+
 export interface HttpTrace {
   readonly method: string;
   readonly path: string;
   readonly status: number;
   readonly elapsedMs: number;
+  /** The correlation id we sent. */
+  readonly sentRequestId?: string;
+  /** A server-side id for the same request, whatever the response actually carried. */
   readonly requestId?: string;
+  /** Which of the three possible sources that id came from. */
+  readonly requestIdSource?: RequestIdSource;
+  readonly stage?: string;
+}
+
+/**
+ * Correlation id for a single KeeperHub request.
+ *
+ * Sending our own means a failed onboarding run can hand a maintainer the exact ids to look up,
+ * instead of "it broke around lunchtime".
+ *
+ * Derived only from the run id, the stage and an attempt counter. The run id is a random UUID
+ * with no relationship to any credential, so this carries no secret. Capped and character-limited
+ * so it cannot become a smuggling channel for anything else.
+ */
+export function buildRequestId(runId: string, stage: string, attempt: number): string {
+  const short = runId.replace(/^fc_/, "").replace(/-/g, "").slice(0, 12);
+  const cleanStage = stage.toLowerCase().replace(/[^a-z0-9]+/g, "-").slice(0, 24);
+  return `fc_${short}_${cleanStage}_${attempt}`.slice(0, 64);
+}
+
+/**
+ * A server-side id for a request, from whichever of three sources the response actually carried.
+ *
+ * Measured against the live API on 2026-08-12: `x-request-id` comes back only on a 404 route
+ * miss, where `request_id` also appears in the body. A 200, a 202 and a 401 all carry neither,
+ * and none of them echo the `X-Request-Id` we send. What every response does carry is Cloudflare's
+ * `cf-ray`, so that is the fallback, and it is the only correlation value that exists at all for
+ * a successful execution.
+ *
+ * The colo suffix is dropped. A ray id reads `<16 hex>-<3-letter datacentre>`, and the datacentre
+ * is a coarse location hint about the person filing the ticket. The hex identifies the request on
+ * its own, and Cloudflare can recover the rest.
+ */
+function serverRequestId(
+  res: Response,
+  json: Record<string, unknown> | null,
+): { id: string; source: RequestIdSource } | undefined {
+  const header = res.headers.get("x-request-id");
+  if (header) return { id: header, source: "x-request-id" };
+  if (typeof json?.request_id === "string") return { id: json.request_id, source: "request_id" };
+  const ray = res.headers.get("cf-ray");
+  if (ray) return { id: ray.split("-")[0]!, source: "cf-ray" };
+  return undefined;
 }
 
 /** Lets a test discard a real response after the server has accepted the request. */
@@ -89,12 +138,28 @@ export class KeeperHubClient {
   private readonly apiKey: string;
   private readonly baseUrl: string;
   private readonly transport: Transport;
+  /** Set once the run id exists. Requests before that are tagged "unknown", which is honest. */
+  runId: string;
+  private attempts = new Map<string, number>();
+  /** The operation the machine is currently performing, so each request says what it was for. */
+  stage = "start";
   readonly traces: HttpTrace[] = [];
 
-  constructor(apiKey: string, opts: { baseUrl?: string; transport?: Transport } = {}) {
+  constructor(
+    apiKey: string,
+    opts: { baseUrl?: string; transport?: Transport; runId?: string } = {},
+  ) {
     this.apiKey = apiKey;
     this.baseUrl = opts.baseUrl ?? KEEPERHUB_BASE_URL;
     this.transport = opts.transport ?? ((url, init) => fetch(url, init));
+    this.runId = opts.runId ?? "unknown";
+  }
+
+  /** Retries of the same stage stay distinguishable, which is the point of the counter. */
+  private nextRequestId(): string {
+    const n = (this.attempts.get(this.stage) ?? 0) + 1;
+    this.attempts.set(this.stage, n);
+    return buildRequestId(this.runId, this.stage, n);
   }
 
   private async request(
@@ -102,7 +167,11 @@ export class KeeperHubClient {
     path: string,
     opts: { body?: string; idempotencyKey?: string } = {},
   ): Promise<{ res: Response; json: Record<string, unknown> | null; text: string }> {
-    const headers: Record<string, string> = { Authorization: `Bearer ${this.apiKey}` };
+    const sentRequestId = this.nextRequestId();
+    const headers: Record<string, string> = {
+      Authorization: `Bearer ${this.apiKey}`,
+      "X-Request-Id": sentRequestId,
+    };
     if (opts.body) headers["Content-Type"] = "application/json";
     if (opts.idempotencyKey) headers["Idempotency-Key"] = opts.idempotencyKey;
 
@@ -120,12 +189,16 @@ export class KeeperHubClient {
     } catch {
       json = null;
     }
+    const server = serverRequestId(res, json);
     this.traces.push({
       method,
       path,
       status: res.status,
       elapsedMs: Date.now() - started,
-      requestId: res.headers.get("x-request-id") ?? undefined,
+      stage: this.stage,
+      sentRequestId,
+      requestId: server?.id,
+      requestIdSource: server?.source,
     });
     return { res, json, text };
   }

@@ -43,6 +43,38 @@ export interface RunRecord {
   attempts: number;
   replayed: boolean;
   conflicts: number;
+  /** Public-safe request correlation, kept so `support` works offline afterwards. */
+  httpTrace?: HttpTraceEntry[];
+  /** Set only when the gas fallback actually fired against this run. */
+  faucet?: FaucetAttempt;
+}
+
+export interface HttpTraceEntry {
+  readonly stage: string;
+  readonly method: string;
+  readonly path: string;
+  readonly status: number;
+  readonly elapsedMs: number;
+  readonly sentRequestId: string | null;
+  readonly serverRequestId: string | null;
+  /** Which response field the server id came from: x-request-id, request_id or cf-ray. */
+  readonly serverRequestIdSource: string | null;
+}
+
+/**
+ * What the faucet did, in public terms.
+ *
+ * Recipient, request id and transaction hash are all values that are already onchain or already
+ * derived from public ones. Nothing here identifies the requester beyond the wallet the payout
+ * went to, which is the wallet the run is about.
+ */
+export interface FaucetAttempt {
+  readonly requestId: string;
+  readonly recipient: string;
+  readonly status: string;
+  readonly transactionHash: string | null;
+  readonly idempotentReplay: boolean;
+  readonly at: string;
 }
 
 /**
@@ -93,9 +125,12 @@ export function newRunId(): string {
 export class RunStore {
   private readonly dir: string;
 
+  /**
+   * Creating the directory is deferred to the first write. A store opened only to read, which is
+   * what `status` and `support` do, should leave the filesystem exactly as it found it.
+   */
   constructor(dir: string) {
     this.dir = dir;
-    mkdirSync(this.dir, { recursive: true });
   }
 
   private pathFor(runId: string): string {
@@ -112,6 +147,7 @@ export class RunStore {
    */
   save(record: RunRecord): void {
     const path = this.pathFor(record.runId);
+    mkdirSync(this.dir, { recursive: true });
     writeFileSync(path, JSON.stringify(record, null, 2) + "\n", { mode: 0o600 });
     const fd = openSync(path, "r");
     try {

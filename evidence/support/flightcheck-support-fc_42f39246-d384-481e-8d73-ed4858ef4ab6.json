@@ -1,0 +1,147 @@
+{
+  "schema": "keeperhub-flightcheck/support/v1",
+  "generatedAt": "2026-08-12T09:02:30.750Z",
+  "flightcheckVersion": "0.1.0",
+  "gitCommit": "63e6e83bb9330ab1ac68d9ecdda47bb62f2eeeaf",
+  "proofSchema": "keeperhub-flightcheck/v1",
+  "run": {
+    "runId": "fc_42f39246-d384-481e-8d73-ed4858ef4ab6",
+    "createdAt": "2026-08-12T09:02:13.957Z",
+    "stageReached": "PROOF_WRITTEN",
+    "outcome": "verified",
+    "attempts": 1,
+    "idempotentReplay": false,
+    "idempotencyConflicts": 0,
+    "idempotencyKeyHash": "0x8dac976fe7b3e921566775d5aa52983760dce3822519448cab63c05de10fb1ba",
+    "idempotencyKeyHashAlgorithm": "sha256",
+    "canonicalRequestBodyHash": "0xdd6b4ddb5697292487a8f21a0e8a411335093b49b570840aeb4773e830011d77",
+    "challenge": "0xb97d6f5dd77135669feb6a40891634602f7dc8dde5d23d2d1a8da2e633c8261d",
+    "intendedOperation": "ping(bytes32)"
+  },
+  "failure": null,
+  "chain": {
+    "chainId": 84532,
+    "name": "Base Sepolia",
+    "canaryAddress": "0x2A6FC8182Bf9928Ef7517dA980dC79e8107c555A",
+    "expectedRuntimeBytecodeHash": "0x753157870ee9e692c7e35e0890fad801fd30fc4674a74a62a7526758da649dd0",
+    "observedRuntimeBytecodeHash": "0x753157870ee9e692c7e35e0890fad801fd30fc4674a74a62a7526758da649dd0",
+    "bytecodeMatch": true
+  },
+  "wallet": {
+    "organisationWallet": "0xfd35ae935de7be93ffd585d6627268d833ed834c",
+    "note": "The wallet KeeperHub executes from, resolved from GET /api/user. Public address only."
+  },
+  "keeperhub": {
+    "executionId": "iczn2rm0veqe410xy8ax9",
+    "serverStatus": "completed",
+    "normalizedState": "COMPLETED",
+    "sponsored": true,
+    "type": "contract-call",
+    "pollCount": 1,
+    "transactionHashInPostBody": false
+  },
+  "onchain": {
+    "transactionHash": "0xfa9c02a1a01803fd2bbfae3b11ce883632004853b5e20a636c8e022ce552703f",
+    "explorerUrl": "https://sepolia.basescan.org/tx/0xfa9c02a1a01803fd2bbfae3b11ce883632004853b5e20a636c8e022ce552703f",
+    "receiptStatus": "success",
+    "receiptVerifiedByKeeperHub": true,
+    "blockNumber": 45378526,
+    "expectedEventFound": true,
+    "challengeMatches": true,
+    "senderMatchesOrgWallet": true
+  },
+  "faucet": {
+    "used": false,
+    "note": "The gas fallback is only reachable after KeeperHub reports, before any broadcast, that the sender cannot pay. A sponsored run never gets there."
+  },
+  "requests": [
+    {
+      "stage": "authenticate",
+      "method": "GET",
+      "path": "/api/keys",
+      "httpStatus": 200,
+      "elapsedMs": 798,
+      "sentRequestId": "fc_42f39246d384_authenticate_1",
+      "serverRequestId": "a29e4ccd6ebc320a",
+      "serverRequestIdSource": "cf-ray"
+    },
+    {
+      "stage": "resolveWallet",
+      "method": "GET",
+      "path": "/api/user",
+      "httpStatus": 200,
+      "elapsedMs": 300,
+      "sentRequestId": "fc_42f39246d384_resolvewallet_1",
+      "serverRequestId": "a29e4ccf5db3320a",
+      "serverRequestIdSource": "cf-ray"
+    },
+    {
+      "stage": "resolveChain",
+      "method": "GET",
+      "path": "/api/chains",
+      "httpStatus": 200,
+      "elapsedMs": 508,
+      "sentRequestId": "fc_42f39246d384_resolvechain_1",
+      "serverRequestId": "a29e4cd15c6b320a",
+      "serverRequestIdSource": "cf-ray"
+    },
+    {
+      "stage": "simulate",
+      "method": "POST",
+      "path": "/api/execute/contract-call",
+      "httpStatus": 200,
+      "elapsedMs": 478,
+      "sentRequestId": "fc_42f39246d384_simulate_1",
+      "serverRequestId": "a29e4cde5e52320a",
+      "serverRequestIdSource": "cf-ray"
+    },
+    {
+      "stage": "execute",
+      "method": "POST",
+      "path": "/api/execute/contract-call",
+      "httpStatus": 202,
+      "elapsedMs": 3149,
+      "sentRequestId": "fc_42f39246d384_execute_1",
+      "serverRequestId": "a29e4ce23a58320a",
+      "serverRequestIdSource": "cf-ray"
+    },
+    {
+      "stage": "settle",
+      "method": "GET",
+      "path": "/api/execute/iczn2rm0veqe410xy8ax9/status",
+      "httpStatus": 200,
+      "elapsedMs": 808,
+      "sentRequestId": "fc_42f39246d384_settle_1",
+      "serverRequestId": "a29e4cf83aed320a",
+      "serverRequestIdSource": "cf-ray"
+    }
+  ],
+  "timingsMs": {
+    "authenticate": 798,
+    "resolveWallet": 300,
+    "resolveChain": 508,
+    "verifyCanary": 1561,
+    "simulate": 479,
+    "execute": 3150,
+    "settle": 809,
+    "verifyReceipt": 816,
+    "verifyEvent": 0,
+    "total": 8421
+  },
+  "secretsIncluded": "none",
+  "excluded": [
+    "KEEPERHUB_API_KEY",
+    "Authorization header",
+    "cookies",
+    "private keys",
+    "Cloudflare secrets",
+    "RPC credentials",
+    "raw environment",
+    "raw process argv",
+    "complete request headers",
+    "faucet rate-limit identity",
+    "IP address",
+    "wallet signing secrets"
+  ],
+  "howToUse": "Safe to attach to a KeeperHub support ticket. Quote the ids under `requests` when you do. `sentRequestId` is the X-Request-Id Flightcheck sent; `serverRequestId` is a server-side id for the same request, and `serverRequestIdSource` says where it came from, since a successful KeeperHub response currently carries no request id of its own and cf-ray is what remains. Nothing was uploaded anywhere. The file is yours."
+}

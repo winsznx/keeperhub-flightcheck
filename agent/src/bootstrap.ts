@@ -17,6 +17,7 @@ import { FlightcheckError } from "./errors.ts";
 import { acquireKeeperHubKey, hasInteractiveTty } from "./secret-input.ts";
 import { classifyKey } from "./env.ts";
 import { runFlightcheck, type RunResult } from "./machine.ts";
+import { RunStore } from "./runstore.ts";
 import { evaluateFaucetEligibility, faucetRequestId, mayStartNewLogicalRun } from "./gaspolicy.ts";
 import { FaucetClient, describeFaucetResult, FAUCET_PAYOUT_WEI, type FaucetResult } from "./faucet-client.ts";
 import { Rpc } from "./rpc.ts";
@@ -157,6 +158,10 @@ export async function runBootstrap(opts: BootstrapOptions): Promise<BootstrapOut
       const client = new FaucetClient({ baseUrl: opts.faucetBaseUrl });
       const requestId = faucetRequestId(result.record.runId, decision.recipient);
       faucet = await client.request(decision.recipient, requestId);
+      // Recorded against the run that needed the gas, so `support` can answer "did the faucet
+      // fire, and what did it do" from disk alone. The retry below is a different logical run
+      // and correctly reports no faucet involvement of its own.
+      persistFaucetAttempt(opts.stateDir, result, faucet, requestId, decision.recipient);
       const described = describeFaucetResult(faucet);
       ui.out(`  ${described.proceed ? "✓" : "✗"} ${described.text}`);
 
@@ -188,6 +193,33 @@ export async function runBootstrap(opts: BootstrapOptions): Promise<BootstrapOut
   }
 
   return { result, keySource: source, faucet, faucetDeclinedReason: declined, retriedAfterFunding: retried };
+}
+
+/** Best effort. A failure to record what the faucet did must not change what the faucet did. */
+function persistFaucetAttempt(
+  stateDir: string,
+  result: RunResult,
+  faucet: FaucetResult,
+  requestId: string,
+  recipient: string,
+): void {
+  try {
+    const store = new RunStore(stateDir);
+    const record = store.exists(result.record.runId)
+      ? store.load(result.record.runId)
+      : result.record;
+    record.faucet = {
+      requestId,
+      recipient,
+      status: faucet.status,
+      transactionHash: faucet.transactionHash ?? null,
+      idempotentReplay: faucet.idempotentReplay === true,
+      at: new Date().toISOString(),
+    };
+    store.save(record);
+  } catch {
+    // Diagnostics are not worth failing a funding step over.
+  }
 }
 
 async function readBalance(rpc: Rpc, address: string): Promise<bigint | null> {

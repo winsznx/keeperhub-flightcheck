@@ -14,10 +14,14 @@ Proof levels:
 | **fixture** | a parser or state-machine test against a captured real response shape, not a live reproduction |
 | **observed** | seen on our runs, not guaranteed to generalise |
 
-Last verified: 2026-08-12, after a clean-room reproduction on an independent KeeperHub account.
-That run corrected a published claim about wallet nonce behaviour, recorded as row 59. Rows 8 and 35 were downgraded or
-withdrawn as a result, and rows 4, 12 and 14 were narrowed to what the evidence actually shows.
-The audit report is in `internal/audit-report.md`.
+Last verified: 2026-08-12, after the support capsule landed and every nonce statement was swept.
+
+Two corrections are recorded rather than quietly applied. The clean-room run disproved a published
+claim about wallet nonce behaviour: row 59 now says the nonce is not a reliable detector rather
+than that it does not move, and the same narrowing was pushed through the README, the proof page,
+`docs/how-verification-works.md`, `docs/onboarding-teardown.md` and the capsule generator. Rows 8
+and 35 were downgraded or withdrawn after the audit, and rows 4, 12 and 14 were narrowed to what
+the evidence actually shows. The audit report is in `internal/audit-report.md`.
 
 ---
 
@@ -65,7 +69,7 @@ The audit report is in `internal/audit-report.md`.
 | 22 | A `failed` execution whose receipts are only `not_found`/`timeout` is downgraded to UNCONFIRMED | automated | `unit.test.ts` reconcileState tests |
 | 23 | A wrong-key-type mistake is diagnosed by name before any network call | automated | `unit.test.ts` classifyKey plus the FC_ENV_WRONG_KEY_TYPE message test |
 | 24 | Wrong emitter, wrong challenge, wrong chain id and hash disagreement each fail verification | fixture | `machine.test.ts` settlement and verification suite |
-| 25 | 115 tests pass with no network access, from a fresh clone with no install | measured | `evidence/test-run.json`, regenerated from the run rather than typed |
+| 25 | 142 tests pass with no network access, from a fresh clone with no install | measured | `evidence/test-run.json`, regenerated from the run rather than typed |
 
 ## Secrets
 
@@ -128,7 +132,24 @@ Each of these is stated in the teardown at the level below and nowhere stronger.
 | 56 | The credential was typed into the hidden prompt over a real pty and never echoed | measured | `keyEchoedToTerminal: false`, checked programmatically against the captured pty stream |
 | 57 | Gas sponsorship applies to a brand-new organisation, not only to ours | onchain | the fresh wallet held zero ETH before and after, and the execution completed with `sponsored: true` |
 | 58 | The sender assertion holds on a second independent organisation wallet | onchain | previously measured on one org; the clean-room event carries the fresh org wallet as `msg.sender` |
-| 59 | The organisation wallet's nonce moves exactly once, at EIP-7702 delegation install, then never again | onchain | fresh wallet 0→1 on its first run; dev wallet still 1 after 8 canary executions. **Corrects an earlier claim in `docs/how-verification-works.md` that the nonce "did not move"** |
+| 59 | The organisation-wallet nonce is not a reliable detector of sponsored execution | onchain | the clean-room wallet moved 0→1 when its EIP-7702 delegation was installed on its first sponsored execution; the development wallet remained at 1 across later sponsored canary executions. **Withdraws an earlier claim that the nonce "did not move"**, and deliberately claims no general transition pattern beyond these two measurements |
+
+## Request correlation and the support capsule
+
+| # | Claim | Level | Evidence |
+|---|---|---|---|
+| 60 | Every KeeperHub request Flightcheck makes carries a client-generated `X-Request-Id` naming the run, the operation and the attempt | automated + live | `support.test.ts` asserts no request leaves without one; the live run above sent `fc_42f39246d384_authenticate_1` through `..._settle_1` |
+| 61 | Those ids are derived only from a random run id, an operation name and a counter, stay within 64 characters, and use only `[A-Za-z0-9_-]` | automated | property test over hostile inputs including an 80-character run id and a punctuated 56-character operation name |
+| 62 | Retries of the same operation remain distinguishable | automated | a run forced to poll twice produces no duplicate id across the whole trace |
+| 63 | A successful KeeperHub response carries no request id of its own | live-api | measured 2026-08-12: `x-request-id` and a body `request_id` appear only on a 404 route miss. A 200, a 202 and a 401 carry neither, and none echo the `X-Request-Id` sent. Header lists retained in `docs/onboarding-teardown.md` |
+| 64 | The capsule still carries a server-side id for every request, because `cf-ray` is present on all of them | live-api | the six requests in the live run above each recorded a distinct ray, tagged `serverRequestIdSource: "cf-ray"` |
+| 65 | The datacentre suffix of a ray id is dropped before it is written | automated | `9c1d4a2b3e5f6071-LHR` is recorded as `9c1d4a2b3e5f6071`, and the test asserts `LHR` appears nowhere in the entry |
+| 66 | No credential can reach a support capsule | automated | five planted-secret attacks (API key, private key, `Bearer` header, session cookie, bare 64-hex) written into every record field that could plausibly carry one, then the leak detector run over the serialised bytes |
+| 67 | The raw idempotency key never leaves the machine; only a digest of it does | automated | the capsule is asserted not to contain the key, and to contain a `0x`-prefixed SHA-256 of it |
+| 68 | The support command makes no network request and works with no credential | automated | subprocess run with `KEEPERHUB_API_KEY` unset, an unroutable RPC URL and an unroutable proxy, exit 0 and a capsule written |
+| 69 | The support command changes nothing it reads | automated | the whole state directory is snapshotted before and after and asserted byte-identical; the only file created is the one it names |
+| 70 | The capsule is deterministic, and the redactor is a fixed point on it | automated | two builds from the same record and clock are byte-identical; `scrub(capsule) === capsule` |
+| 71 | A capsule that still trips the leak detector is never written | automated | a deliberately contaminated capsule makes the writer throw, and the output directory is asserted empty afterwards |
 
 ## Deliberately not claimed
 
@@ -154,3 +175,12 @@ Each of these is stated in the teardown at the level below and nowhere stronger.
   is production infrastructure.
 - Not claimed: a measured time saving from the bootstrap path. What is claimed is narrower and
   testable: the primary first-run path no longer requires creating or editing a `.env` file.
+- Not claimed: that KeeperHub can resolve a `cf-ray` to an execution. It is Cloudflare's request
+  id, and it is what a successful KeeperHub response actually carries. Whether it is useful on
+  the receiving end is KeeperHub's to say.
+- Not claimed: that a support capsule has been through a real KeeperHub support ticket. Nobody
+  has filed one. What is claimed is what the artifact contains and what it cannot contain.
+- Not claimed: that `kh doctor` misreports a wallet during automatic provisioning. We looked, and
+  on the one fresh account available `walletAddress` was already populated at the first call. The
+  probe and the reason no PR was opened are in
+  `evidence/probes/doctor-wallet-provisioning.md`.

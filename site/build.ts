@@ -25,6 +25,7 @@ interface Manifest {
   runs: { total: number; verified: number; endToEndRuns: number; fastestEndToEndMs: number | null; slowestEndToEndMs: number | null; all: Array<Record<string, unknown>> };
   recovery: Record<string, unknown> | null;
   benchmark: Record<string, unknown> | null;
+  cleanroom: Record<string, unknown> | null;
   stateMachine: Array<{ stage: string; label: string; independentOfKeeperHub: boolean }>;
   bootstrap: Record<string, unknown> | null;
   faucet: Record<string, unknown> | null;
@@ -46,6 +47,7 @@ const nm = '<span class="nm">not measured</span>';
 const run = m.canonicalRun;
 const rec = m.recovery;
 const bench = m.benchmark;
+const clean = m.cleanroom;
 
 const CSS = `
 :root{
@@ -169,6 +171,52 @@ function faucetCard(): string {
     </div>`;
 }
 
+/**
+ * The canonical run proves the mechanism works. This proves it works for someone who is not us.
+ *
+ * Everything here comes from evidence/cleanroom/cleanroom.json via the manifest, including the
+ * nonce observation, which corrected a claim this page previously made.
+ */
+function cleanroomSection(): string {
+  if (!clean) {
+    return `<p>${nm}. The clean-room reproduction is recorded in <code class="mono">evidence/cleanroom/</code> when it has been run.</p>`;
+  }
+  const pre = (clean.preconditions ?? {}) as Record<string, unknown>;
+  const res = (clean.result ?? {}) as Record<string, unknown>;
+  const before = (pre.walletStateBeforeRun ?? {}) as Record<string, unknown>;
+  const nonce = (clean.nonceObservation ?? {}) as Record<string, unknown>;
+
+  return `<p>
+      A KeeperHub account created the same morning, with no relationship to the development
+      account. A fresh clone of the published repository. No <code class="mono">.env</code>, no
+      <code class="mono">npm install</code>, no run state, and
+      <code class="mono">KEEPERHUB_API_KEY</code> explicitly unset. The organisation key was typed
+      into the hidden prompt over a real pty, the way a person would.
+    </p>
+    <div class="grid g3" style="margin-top:28px">
+      <div class="card"><div class="stat">${esc(res.outcome === "verified" ? "VERIFIED" : String(res.outcome ?? "?"))}</div><div class="statlabel">on an account with no relationship to ours</div></div>
+      <div class="card"><div class="stat">${esc(((res.totalMs as number) / 1000).toFixed(1))}s</div><div class="statlabel">first credential to verified transaction</div></div>
+      <div class="card"><div class="stat">${clean.keyEchoedToTerminal === false ? "false" : "?"}</div><div class="statlabel">key echoed to the terminal, checked against the captured pty stream</div></div>
+    </div>
+    <div class="kv" style="margin-top:28px">
+      <div class="k">org wallet</div><div class="v">${esc(pre.organisationWallet)}</div>
+      <div class="k">before the run</div><div class="v">balance ${esc(before.balanceWei)}, nonce ${esc(before.nonce)}, code ${esc(before.code)}</div>
+      <div class="k">transaction</div><div class="v"><a href="${esc(res.explorer)}">${esc(res.transactionHash)}</a></div>
+      <div class="k">execution</div><div class="v">${esc(res.executionId)}</div>
+      <div class="k">sponsored</div><div class="v">${esc(String(res.sponsored))}</div>
+      <div class="k">faucet used</div><div class="v">${esc(String(clean.faucetUsed))}</div>
+      <div class="k">msg.sender</div><div class="v">${esc(res.eventSender)} <span style="color:var(--ash)">the fresh org wallet</span></div>
+    </div>
+    <p style="margin-top:24px;max-width:68ch">
+      This run also corrected something this page used to claim. The wallet's nonce moved from
+      ${esc(nonce.before)} to ${esc(nonce.after)} while its balance stayed at
+      ${esc(nonce.balanceBefore)}, because the first sponsored execution installs the wallet's
+      EIP-7702 delegation. The development wallet stayed at nonce 1 across later executions. So
+      the nonce is not a reliable detector of sponsored execution in either direction, and no
+      general transition pattern is claimed beyond those two measurements.
+    </p>`;
+}
+
 function benchmarkSection(): string {
   if (!bench) {
     return `<div class="card"><h3>Benchmark</h3><p style="margin-top:8px">${nm}. The measured comparison is recorded in <code class="mono">evidence/benchmark/</code> when it has been run.</p></div>`;
@@ -278,10 +326,13 @@ const html = `<!doctype html>
         <div class="k">sponsored</div><div class="v">${esc(String(run?.sponsored ?? "not measured"))}</div>
       </div>
       <p style="margin-top:20px;max-width:68ch">
-        The organisation wallet did not send this transaction, did not pay for it, and its nonce
-        never moved. It held zero ETH throughout. Open it on a block explorer and the transaction
-        list is empty, while the transaction sits in a block doing exactly what was asked. Every
-        wallet-level heuristic concludes that nothing happened.
+        The organisation wallet did not send this transaction and did not pay for it. It held
+        zero ETH throughout. Open it on a block explorer and the transaction list is empty, while
+        the transaction sits in a block doing exactly what was asked. Its nonce is no help
+        either: the clean-room wallet moved from 0 to 1 when its EIP-7702 delegation was
+        installed on its first sponsored execution, and the development wallet stayed at 1 across
+        later sponsored executions, so a single increment can sit behind any number of
+        transactions.
       </p>
       <p style="margin-top:12px;max-width:68ch">
         So verification goes hash, then receipt, then decoded log, and never touches wallet state.
@@ -317,6 +368,13 @@ const html = `<!doctype html>
   transactions onchain carrying this challenge         <span class="g">${esc(rec?.transactionsOnchain ?? "?")}</span>
 
   <span class="g">PASS. Two broadcast attempts, one transaction.</span></pre>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2>Independent clean-room reproduction</h2>
+    ${cleanroomSection()}
   </div>
 </section>
 

@@ -15,8 +15,9 @@ import { BASE_SEPOLIA, TOOL_VERSION } from "./config.ts";
 import { resolve } from "node:path";
 import * as ui from "./ui.ts";
 import { runBootstrap } from "./bootstrap.ts";
+import { buildSupportCapsule, writeSupportCapsule, requestIdsByStage } from "./support.ts";
 import { assertNoSecretInArgv } from "./secret-input.ts";
-import { loadDotenv, registerEnvSecrets, REPO_ROOT as ROOT } from "./env.ts";
+import { loadDotenv, registerEnvSecrets, stateDirFor, REPO_ROOT as ROOT } from "./env.ts";
 import { resolve as resolvePath } from "node:path";
 
 /**
@@ -36,9 +37,11 @@ async function refreshManifest(): Promise<void> {
 interface Args {
   readonly execute: boolean;
   readonly resume?: string;
-  readonly command: "run" | "setup" | "status" | "help" | "version";
+  readonly command: "run" | "setup" | "status" | "support" | "help" | "version";
   readonly assumeYes: boolean;
   readonly statusRunId?: string;
+  readonly supportRunId?: string;
+  readonly outDir?: string;
   readonly json: boolean;
 }
 
@@ -77,6 +80,26 @@ function parseArgs(argv: readonly string[]): Args {
     const rest = args.slice(2).filter((a) => a !== "--json");
     if (rest.length) throw new UsageError(`Unexpected argument: ${rest[0]}`);
     return { execute: false, command: "status", statusRunId: args[1], json, assumeYes };
+  }
+
+  if (args[0] === "support") {
+    if (!args[1] || args[1].startsWith("-")) {
+      throw new UsageError(
+        "support needs a run id.\n\n" +
+          "  npm run flightcheck -- support <run-id>\n\n" +
+          "List persisted runs with:\n\n  npm run flightcheck -- status",
+      );
+    }
+    const outIdx = args.indexOf("--out");
+    const outDir = outIdx >= 0 ? args[outIdx + 1] : undefined;
+    if (outIdx >= 0 && (!outDir || outDir.startsWith("-"))) {
+      throw new UsageError("--out needs a directory.");
+    }
+    const rest = args
+      .slice(2)
+      .filter((a, i) => a !== "--json" && !(outIdx >= 0 && (i + 2 === outIdx || i + 2 === outIdx + 1)));
+    if (rest.length) throw new UsageError(`Unexpected argument: ${rest[0]}`);
+    return { execute: false, command: "support", supportRunId: args[1], outDir, json, assumeYes };
   }
 
   const resumeIdx = args.indexOf("--resume");
@@ -119,12 +142,19 @@ Usage
   npm run flightcheck -- --execute         broadcast one zero-value call to the canary
   npm run flightcheck -- --resume <run-id> recover a run whose response was lost
   npm run flightcheck -- status [run-id]   inspect persisted runs
+  npm run flightcheck -- support <run-id>  redacted diagnostic file for a support ticket
 
 Flags
   --yes       skip the gas-fallback confirmation prompt
   --json      machine-readable result on stdout
+  --out DIR   where support writes its file, default evidence/support
   --version   print version and the pinned canary
   --help      this text
+
+Environment
+  KEEPERHUB_API_KEY       organisation key, for non-interactive runs
+  FLIGHTCHECK_RPC_URL     the node used for independent verification
+  FLIGHTCHECK_STATE_DIR   where run records are kept, default .keeperhub/flightcheck
 
 Credentials
   setup reads the KeeperHub organisation key from an interactive terminal. It is never
@@ -173,7 +203,7 @@ async function main(): Promise<number> {
       execute: args.execute,
       chainId: Number(process.env.FLIGHTCHECK_CHAIN_ID ?? BASE_SEPOLIA.chainId),
       rpcUrl: (process.env.FLIGHTCHECK_RPC_URL ?? BASE_SEPOLIA.defaultRpcUrl).trim(),
-      stateDir: resolvePath(ROOT, ".keeperhub", "flightcheck"),
+      stateDir: stateDirFor(ROOT),
       envKey: process.env.KEEPERHUB_API_KEY,
       assumeYes: args.assumeYes,
     });
@@ -181,7 +211,7 @@ async function main(): Promise<number> {
     const r = outcome.result;
     if (r.outcome !== "simulated") {
       const capsule = buildCapsule(r, (process.env.FLIGHTCHECK_RPC_URL ?? BASE_SEPOLIA.defaultRpcUrl).trim());
-      const proofsDir = resolvePath(ROOT, ".keeperhub", "flightcheck", "proofs");
+      const proofsDir = resolvePath(stateDirFor(ROOT), "proofs");
       const targets =
         r.outcome === "verified" ? [proofsDir, resolvePath(ROOT, "evidence", "runs")] : [proofsDir];
       const written = writeCapsule(capsule, targets);
@@ -227,6 +257,42 @@ async function main(): Promise<number> {
       broadcastPossible: err.broadcastPossible,
     });
     return 1;
+  }
+
+  /*
+   * Support runs entirely from what is already on disk.
+   *
+   * Deliberately above loadEnv(), which throws when no credential is configured. The run most in
+   * need of a support artifact is the one that failed for want of a working credential, and a
+   * diagnostic command that refuses to run for the same reason as the thing being diagnosed is
+   * worse than useless. It sends nothing, so no credential is needed.
+   */
+  if (args.command === "support") {
+    loadDotenv();
+    // Registers whatever credentials do exist with the redactor, so the leak gate the writer
+    // runs is checking against real values rather than only against shapes.
+    registerEnvSecrets();
+    const stateDir = stateDirFor(ROOT);
+    const record = new RunStore(stateDir).load(args.supportRunId!);
+    const capsule = buildSupportCapsule(record, { stateDir, repoRoot: ROOT });
+    const { path } = writeSupportCapsule(
+      capsule,
+      args.outDir ? resolvePath(args.outDir) : resolvePath(ROOT, "evidence", "support"),
+    );
+
+    if (args.json) {
+      process.stdout.write(JSON.stringify(capsule, null, 2) + "\n");
+      return 0;
+    }
+    ui.support({
+      path,
+      executionId: record.executionId,
+      stageReached: record.stageReached,
+      failureCode: (capsule.failure?.code as string) ?? null,
+      transactionHash: record.transactionHash,
+      requestIds: requestIdsByStage(capsule),
+    });
+    return 0;
   }
 
   const env = loadEnv();

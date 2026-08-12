@@ -1,6 +1,6 @@
 {
   "schema": "keeperhub-flightcheck/manifest/v1",
-  "generatedAt": "2026-08-12T08:09:02.509Z",
+  "generatedAt": "2026-08-12T09:24:12.851Z",
   "toolVersion": "0.1.0",
   "proofSchema": "keeperhub-flightcheck/v1",
   "canary": {
@@ -41,9 +41,9 @@
     "completedAt": "2026-08-11T11:34:42.919Z"
   },
   "runs": {
-    "total": 6,
-    "verified": 6,
-    "endToEndRuns": 5,
+    "total": 9,
+    "verified": 9,
+    "endToEndRuns": 8,
     "fastestEndToEndMs": 8002,
     "slowestEndToEndMs": 10515,
     "timingNote": "Timings cover cold end-to-end runs only. Resumed runs are excluded: they skip simulation and re-read an already-mined transaction, so their totals are not comparable.",
@@ -89,6 +89,27 @@
         "executionId": "dbcu4daj7ak08fia2xs4p",
         "totalMs": 8002,
         "completedAt": "2026-08-11T16:49:18.135Z"
+      },
+      {
+        "runId": "fc_bf48240d-cc57-4018-ba01-783e56d8f0f0",
+        "transactionHash": "0x87b0152a1d92d5e8b6e72708c2fe4d4135e8b03b1ac256611b30db9aa7dbb961",
+        "executionId": "ulko5886b9f7df76e4gdx",
+        "totalMs": 8634,
+        "completedAt": "2026-08-12T08:58:56.914Z"
+      },
+      {
+        "runId": "fc_42f39246-d384-481e-8d73-ed4858ef4ab6",
+        "transactionHash": "0xfa9c02a1a01803fd2bbfae3b11ce883632004853b5e20a636c8e022ce552703f",
+        "executionId": "iczn2rm0veqe410xy8ax9",
+        "totalMs": 8421,
+        "completedAt": "2026-08-12T09:02:22.418Z"
+      },
+      {
+        "runId": "fc_54f342c1-3b1c-4412-b296-cac7487378ad",
+        "transactionHash": "0xfd8fb2dc11b41f0bd203d3d1f6bf2303af10ace4da6e8e854c7d54278c58746b",
+        "executionId": "f5u0js5xqzyjno3gbkwz1",
+        "totalMs": 9228,
+        "completedAt": "2026-08-12T09:11:02.355Z"
       }
     ]
   },
@@ -183,6 +204,60 @@
         "a run record predating the capsule fix reported a stale stage; the final stage is now persisted",
         "npm's banner broke piping --json into jq; the README now shows npm run --silent"
       ]
+    }
+  },
+  "cleanroom": {
+    "title": "Independent clean-room reproduction",
+    "date": "2026-08-12",
+    "preconditions": {
+      "keeperhubAccount": "created the same morning, unrelated to the development account",
+      "organisationWallet": "0xaa943223d9601cfa673a9a574b381864ec1a42ee",
+      "walletStateBeforeRun": {
+        "balanceWei": "0",
+        "nonce": 0,
+        "code": "0x",
+        "everUsed": false
+      },
+      "repository": "fresh git clone of the published repo, commit de7ceab",
+      "envFile": "none",
+      "environmentVariable": "KEEPERHUB_API_KEY explicitly unset in the child process",
+      "runState": "no .keeperhub directory",
+      "npmInstall": "not run",
+      "credentialEntry": "typed into the hidden interactive prompt over a real pty, as a human would"
+    },
+    "result": {
+      "outcome": "verified",
+      "transactionHash": "0x642002f79b9a6ae4570c84f6b8d3c0a12a9f001304a7921e48f5eb7149aff852",
+      "explorer": "https://sepolia.basescan.org/tx/0x642002f79b9a6ae4570c84f6b8d3c0a12a9f001304a7921e48f5eb7149aff852",
+      "executionId": "j6cjarjfr3obh6syblyjd",
+      "blockNumber": 45376232,
+      "challenge": "0x2648d83ce23dfc56189c0efef7bc2f8bd5a2b9a5c5087c64e8ae40083995a2b1",
+      "sponsored": true,
+      "eventSender": "0xaa943223d9601cfa673a9a574b381864ec1a42ee",
+      "senderAssertion": "asserted-and-matched",
+      "allLegsAgree": true,
+      "totalMs": 7412,
+      "wallClockSeconds": 9.1
+    },
+    "faucetUsed": false,
+    "nonceObservation": {
+      "before": 0,
+      "after": 1,
+      "balanceBefore": "0",
+      "balanceAfter": "0",
+      "codeAfter": "0xef0100955d84139e7621bc571b117d8eb5d28a4a222c6f",
+      "note": "The organisation-wallet nonce is not a reliable detector of sponsored execution. This wallet is an EIP-7702 delegated account and moved from nonce 0 to 1 when its delegation was installed on its first sponsored execution; the development wallet remained at nonce 1 across later sponsored canary executions. No general transition pattern is claimed beyond these two observations."
+    },
+    "keyEchoedToTerminal": false,
+    "establishes": [
+      "The published artifact works from a fresh clone on an account with no relationship to ours.",
+      "The credential boundary holds end to end: the key was typed into the hidden prompt over a real pty and never echoed, verified programmatically (keyEchoedToTerminal: false).",
+      "Gas sponsorship applies to a brand-new organisation, not just to ours. The wallet held zero ETH before and after.",
+      "The sender assertion holds on a second, independent organisation wallet. It was previously measured on one."
+    ],
+    "sourceFiles": {
+      "terminalTranscript": "evidence/cleanroom/run-output.txt",
+      "proofCapsule": "evidence/cleanroom/proof.json"
     }
   },
   "bootstrap": {
@@ -400,17 +475,17 @@
   "failureCodes": 44,
   "tests": {
     "command": "npm test",
-    "tests": 115,
-    "suites": 22,
-    "pass": 115,
+    "tests": 142,
+    "suites": 27,
+    "pass": 142,
     "fail": 0,
     "skipped": 0,
     "todo": 0,
-    "durationMs": 18906.5,
+    "durationMs": 19071.2,
     "network": "none required",
     "install": "none required",
-    "capturedAt": "2026-08-11",
-    "note": "Unit, state-machine, bootstrap and real-pty tests, runnable from a fresh clone with no npm install. The pty echo test needs python3 and skips without it. Two live tests are separate: npm run test:acceptance (response-loss recovery) and the faucet live acceptance, recorded in evidence/recovery/ and evidence/faucet/.",
+    "capturedAt": "2026-08-12",
+    "note": "Unit, state-machine, bootstrap, support-capsule and real-pty tests, runnable from a fresh clone with no npm install. The pty echo test needs python3 and skips without it. Three support tests spawn the real CLI as a subprocess. Two live tests are separate: npm run test:acceptance (response-loss recovery) and the faucet live acceptance, recorded in evidence/recovery/ and evidence/faucet/.",
     "capturedFrom": "npm test",
     "file": "evidence/test-run.json"
   }
