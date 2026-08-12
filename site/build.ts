@@ -401,8 +401,10 @@ function benchStrip(): string {
     <div class="grid g2" style="margin-top:20px">
       ${arms
         .map(
+          // n=1 sits on the number itself. A caveat a reader can skip past is a caveat that did
+          // not happen, and this figure is the easiest thing on the page to over-read.
           (a) => `<div class="card">
-            <div class="head"><h4>${esc(a.name)}</h4><span class="pill">${esc(a.given)}</span></div>
+            <div class="head"><h4>${esc(a.name)}</h4><span class="pill">${esc(a.given)}</span><span class="pill">n=1</span></div>
             <div class="stat sm" style="margin-top:12px">${esc(a.timeToVerified ?? "?")}</div>
             <div class="statlabel">${esc(a.commands ?? "?")} commands · ${esc(a.failedAttempts ?? "?")} failed attempts</div>
           </div>`,
@@ -734,6 +736,7 @@ const html = `<!doctype html>
       <span class="pill">CLI · 0 runtime dependencies</span>
     </div>
     <p class="lede"><code class="mono">kh doctor</code> tells you the environment looks healthy. Flightcheck proves KeeperHub can actually execute from it, then independently checks the transaction against the chain.</p>
+    <p class="sub" style="margin-top:14px;max-width:62ch">KeeperHub executes onchain transactions and automations from an organisation wallet, through an API and a CLI. Flightcheck is an independent conformance check built against it for the Agents Onchain Hackathon. It is not an official KeeperHub tool, and none of its upstream fixes are merged.</p>
     <pre style="margin-top:26px;max-width:640px">npm run flightcheck -- setup --execute</pre>
     <p class="sub" style="margin-top:12px">Fresh clone. No <code class="mono">.env</code>. No <code class="mono">npm install</code>. Credential entered through a hidden terminal boundary.</p>
     ${heroStrip()}
@@ -909,7 +912,7 @@ const html = `<!doctype html>
     <h2>The teardown became upstream work.</h2>
     <p style="margin-top:14px">Every one came from a finding this project proved with a real transaction.</p>
     <div style="margin-top:26px">${upstreamRows()}</div>
-    <p class="sub" style="margin-top:20px">${esc(up?.prs?.length ?? 0)} focused upstream contributions. ${up?.merged === 0 ? "None are represented as merged." : `${esc(up?.merged)} merged.`} States read from GitHub${up?.fetchedAt ? ` at ${esc(String(up.fetchedAt).slice(0, 16).replace("T", " "))} UTC` : ""}${up?.stale ? ", and this block may be stale" : ""}.</p>
+    <p class="sub" style="margin-top:20px">${esc(up?.prs?.length ?? 0)} contributions, ${up?.merged === 0 ? "all open and none merged" : `${esc(up?.merged)} merged`}. Two carry maintainer reviews requesting changes, since addressed; the rest are awaiting review. Whether any is accepted is KeeperHub's call, not a result this project can claim. States read from GitHub${up?.fetchedAt ? ` at ${esc(String(up.fetchedAt).slice(0, 16).replace("T", " "))} UTC` : ""}${up?.stale ? ", and this block may be stale" : ""}.</p>
   </div>
 </section>
 
