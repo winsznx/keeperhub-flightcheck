@@ -783,8 +783,8 @@ const html = `<!doctype html>
 
 <section id="proof">
   <div class="wrap">
-    <h2>One execution. Three independent answers.</h2>
-    <p style="margin-top:14px">A run counts as verified only when all three agree. Two of them do not ask KeeperHub anything.</p>
+    <h2>One execution. Three answers, two of them not KeeperHub's.</h2>
+    <p style="margin-top:14px">A run counts as verified only when all three agree. KeeperHub's own report is the claim under test, so it is checked against a public node and a decoded event that never ask KeeperHub anything.</p>
     <div class="grid" style="margin-top:30px;gap:0">${proofNodes()}</div>
     <div class="dark" style="margin-top:22px">
       <div class="head"><span class="badge">ALL THREE AGREE</span></div>
@@ -856,7 +856,8 @@ const html = `<!doctype html>
         </div>
       </div>
     </div>
-    <p style="margin-top:26px">The fresh run also disproved one of our own published assumptions: the organisation-wallet nonce moved 0 → 1 when its EIP-7702 delegation was installed. We withdrew the old claim rather than rewriting the evidence.</p>
+    <p style="margin-top:26px">To be exact about what this is: a different account, not a different person. It was created and driven by us, so it shows the artifact does not depend on our environment, credentials or accumulated state. It is not a claim that an unaffiliated stranger ran it.</p>
+    <p style="margin-top:16px">The fresh run also disproved one of our own published assumptions: the organisation-wallet nonce moved 0 → 1 when its EIP-7702 delegation was installed. We withdrew the old claim rather than rewriting the evidence.</p>
     <a class="more" href="#evidence-cleanroom">Inspect clean-room evidence →</a>
   </div>
 </section>
@@ -910,7 +911,7 @@ const html = `<!doctype html>
 <section id="upstream">
   <div class="wrap">
     <h2>The teardown became upstream work.</h2>
-    <p style="margin-top:14px">Every one came from a finding this project proved with a real transaction.</p>
+    <p style="margin-top:14px">Every one came from a finding this project proved with a real transaction. Nine findings produced five PRs: some are observations for the teardown rather than a change worth a maintainer's time, one was withdrawn after it turned out to be fixed upstream, and five is a deliberate ceiling rather than a count to optimise.</p>
     <div style="margin-top:26px">${upstreamRows()}</div>
     <p class="sub" style="margin-top:20px">${esc(up?.prs?.length ?? 0)} contributions, ${up?.merged === 0 ? "all open and none merged" : `${esc(up?.merged)} merged`}. Two carry maintainer reviews requesting changes, since addressed; the rest are awaiting review. Whether any is accepted is KeeperHub's call, not a result this project can claim. States read from GitHub${up?.fetchedAt ? ` at ${esc(String(up.fetchedAt).slice(0, 16).replace("T", " "))} UTC` : ""}${up?.stale ? ", and this block may be stale" : ""}.</p>
   </div>

@@ -1,7 +1,9 @@
 # How verification works
 
-A Flightcheck run is `verified` only when three independent lines of evidence agree. This
-document is the precise version of that claim, including where it is weaker than it looks.
+A Flightcheck run is `verified` only when three lines of evidence agree, two of which never ask
+KeeperHub anything. Calling all three "independent" would be the wrong word and this document is
+the precise version of the claim, including where it is weaker than it looks: leg 1 is KeeperHub's
+own report, which is the thing being checked rather than a check on it.
 
 ## The three legs
 

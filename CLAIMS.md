@@ -125,6 +125,12 @@ Each of these is stated in the teardown at the level below and nowhere stronger.
 
 ## Independent reproducibility
 
+"Independent" here means a different KeeperHub account, organisation and wallet, with no shared
+state, credentials or history. It does not mean a different person: the clean-room run was created
+and driven by us. What it establishes is that the artifact does not depend on our environment, not
+that an unaffiliated third party has reproduced it. Nobody outside this project has, and the rows
+below should be read that way.
+
 | # | Claim | Level | Evidence |
 |---|---|---|---|
 | 54 | The published artifact produces a verified transaction on a KeeperHub account with no relationship to ours | onchain | [`0x642002f79b9a6ae4570c84f6b8d3c0a12a9f001304a7921e48f5eb7149aff852`](https://sepolia.basescan.org/tx/0x642002f79b9a6ae4570c84f6b8d3c0a12a9f001304a7921e48f5eb7149aff852), execution `j6cjarjfr3obh6syblyjd`, org wallet `0xaa943223d9601cfa673a9a574b381864ec1a42ee` |
