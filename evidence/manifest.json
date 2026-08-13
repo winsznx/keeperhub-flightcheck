@@ -1,6 +1,6 @@
 {
   "schema": "keeperhub-flightcheck/manifest/v1",
-  "generatedAt": "2026-08-13T09:04:55.867Z",
+  "generatedAt": "2026-08-13T09:45:17.196Z",
   "toolVersion": "0.1.0",
   "proofSchema": "keeperhub-flightcheck/v1",
   "canary": {
@@ -41,9 +41,9 @@
     "completedAt": "2026-08-11T11:34:42.919Z"
   },
   "runs": {
-    "total": 9,
-    "verified": 9,
-    "endToEndRuns": 8,
+    "total": 12,
+    "verified": 12,
+    "endToEndRuns": 11,
     "fastestEndToEndMs": 8002,
     "slowestEndToEndMs": 10515,
     "timingNote": "Timings cover cold end-to-end runs only. Resumed runs are excluded: they skip simulation and re-read an already-mined transaction, so their totals are not comparable.",
@@ -110,6 +110,27 @@
         "executionId": "f5u0js5xqzyjno3gbkwz1",
         "totalMs": 9228,
         "completedAt": "2026-08-12T09:11:02.355Z"
+      },
+      {
+        "runId": "fc_636ed03c-4ba7-46c1-a1db-2240b8f7584a",
+        "transactionHash": "0xb1f052e5f8475208e5a8ea35df3231f14e8eba58b0d75bfc914780b191f699e0",
+        "executionId": "tgpzjog16as7xvq69dv2z",
+        "totalMs": 8334,
+        "completedAt": "2026-08-13T09:24:38.430Z"
+      },
+      {
+        "runId": "fc_47d15278-dc91-4e27-952f-b74f357da5ee",
+        "transactionHash": "0x644d70bda51be5acc70e72539bd5d8faf5488b5354b6b18f196fb08f3c15ad7e",
+        "executionId": "yeom0w8qs32vx8od7onvv",
+        "totalMs": 8724,
+        "completedAt": "2026-08-13T09:27:14.433Z"
+      },
+      {
+        "runId": "fc_fef6dc0b-2a6f-45c8-9de0-2e10be63df38",
+        "transactionHash": "0xb47b52e98f4291d4c05ded418941fda70406a8ef8b23c84698b51ddfabff71c4",
+        "executionId": "xw2hbd4weo1pcyvg1lvkz",
+        "totalMs": 10064,
+        "completedAt": "2026-08-13T09:30:13.647Z"
       }
     ]
   },
@@ -119,7 +140,7 @@
     "broadcastRequestsSent": 2,
     "transactionsOnchain": 1,
     "idempotentReplay": true,
-    "transactionHash": "0xea29009fb561509b9b71d85ba5d0f9cf02857e6eaac327e37dc4ffff5a60cabd",
+    "transactionHash": "0x698b2af8bb6cd10ee95ed0635b974f745fec7ae48b0c808c31f909f4ed4c013f",
     "method": "eth_getLogs filtered by canary address and the run's unique challenge topic"
   },
   "benchmark": {
@@ -411,30 +432,32 @@
     "pass": true
   },
   "upstream": {
-    "fetchedAt": "2026-08-12T13:50:30.601Z",
+    "fetchedAt": "2026-08-13T09:39:38.531Z",
     "stale": true,
     "source": "GitHub REST, unauthenticated, at manifest generation time",
     "total": 5,
-    "merged": 0,
-    "open": 5,
+    "merged": 2,
+    "open": 3,
     "prs": [
       {
         "repo": "KeeperHub/keeperhub",
         "number": 2008,
         "title": "Document execution terminality and the missing statuses",
         "url": "https://github.com/KeeperHub/keeperhub/pull/2008",
-        "state": "open",
-        "merged": false,
+        "state": "closed",
+        "merged": true,
         "draft": false,
-        "mergeable": "unstable",
+        "mergeable": "unknown",
         "reviewDecision": "CHANGES_REQUESTED",
         "checks": {
-          "total": 0,
-          "failing": 0,
-          "names": []
+          "total": 30,
+          "failing": 1,
+          "names": [
+            "cleanup"
+          ]
         },
         "labels": [
-          "changes-requested"
+          "approve"
         ]
       },
       {
@@ -442,15 +465,17 @@
         "number": 2009,
         "title": "Correct what the machine-readable API document covers",
         "url": "https://github.com/KeeperHub/keeperhub/pull/2009",
-        "state": "open",
-        "merged": false,
+        "state": "closed",
+        "merged": true,
         "draft": false,
-        "mergeable": "unstable",
+        "mergeable": "unknown",
         "reviewDecision": "CHANGES_REQUESTED",
         "checks": {
-          "total": 0,
-          "failing": 0,
-          "names": []
+          "total": 2,
+          "failing": 1,
+          "names": [
+            "cleanup"
+          ]
         },
         "labels": [
           "changes-requested",
@@ -466,13 +491,15 @@
         "merged": false,
         "draft": false,
         "mergeable": "unstable",
-        "reviewDecision": null,
+        "reviewDecision": "CHANGES_REQUESTED",
         "checks": {
-          "total": 1,
+          "total": 30,
           "failing": 0,
           "names": []
         },
-        "labels": []
+        "labels": [
+          "changes-requested"
+        ]
       },
       {
         "repo": "KeeperHub/cli",
@@ -483,15 +510,18 @@
         "merged": false,
         "draft": false,
         "mergeable": "unstable",
-        "reviewDecision": null,
+        "reviewDecision": "CHANGES_REQUESTED",
         "checks": {
-          "total": 1,
-          "failing": 1,
+          "total": 2,
+          "failing": 2,
           "names": [
+            "check-issue-link",
             "check-issue-link"
           ]
         },
-        "labels": []
+        "labels": [
+          "changes-requested"
+        ]
       },
       {
         "repo": "KeeperHub/cli",
@@ -502,15 +532,18 @@
         "merged": false,
         "draft": false,
         "mergeable": "unstable",
-        "reviewDecision": null,
+        "reviewDecision": "CHANGES_REQUESTED",
         "checks": {
-          "total": 1,
-          "failing": 1,
+          "total": 2,
+          "failing": 2,
           "names": [
+            "check-issue-link",
             "check-issue-link"
           ]
         },
-        "labels": []
+        "labels": [
+          "changes-requested"
+        ]
       }
     ]
   },

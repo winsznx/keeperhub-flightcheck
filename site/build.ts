@@ -344,14 +344,21 @@ function upstreamRows(): string {
        * A field that is inconsistently available is worse than no field.
        */
       const bits: string[] = [];
-      bits.push(pr.merged ? "<b>MERGED</b>" : pr.state === "open" ? "<b>OPEN</b>" : `<b>${esc(pr.state.toUpperCase())}</b>`);
-      if (pr.draft) bits.push("DRAFT");
-      if (pr.reviewDecision === "CHANGES_REQUESTED") bits.push("REVIEWED · CHANGES ADDRESSED");
-      else if (pr.reviewDecision === "APPROVED") bits.push("APPROVED");
-      else bits.push("AWAITING REVIEW");
-      // A failing gate is the thing a reader most wants to know and the thing a page like this
-      // is most tempted to leave out.
-      if (pr.checks && pr.checks.failing > 0) bits.push(`<b style="color:var(--ember)">${esc(pr.checks.names[0] ?? "check")} FAILING</b>`);
+      // Once a pull request is merged, its review history and its post-merge housekeeping jobs
+      // are noise. "MERGED · REVIEWED · CHANGES ADDRESSED · cleanup FAILING" reads as a problem
+      // with something that already landed.
+      if (pr.merged) {
+        bits.push('<b style="color:var(--ember)">MERGED</b>');
+      } else {
+        bits.push(pr.state === "open" ? "<b>OPEN</b>" : `<b>${esc(pr.state.toUpperCase())}</b>`);
+        if (pr.draft) bits.push("DRAFT");
+        if (pr.reviewDecision === "CHANGES_REQUESTED") bits.push("REVIEWED · CHANGES ADDRESSED");
+        else if (pr.reviewDecision === "APPROVED") bits.push("APPROVED");
+        else bits.push("AWAITING REVIEW");
+        // A failing gate is the thing a reader most wants to know and the thing a page like this
+        // is most tempted to leave out.
+        if (pr.checks && pr.checks.failing > 0) bits.push(`<b style="color:var(--ember)">${esc(pr.checks.names[0] ?? "check")} FAILING</b>`);
+      }
       return `<a class="pr" href="${esc(pr.url)}">
         <span class="rp">${esc(pr.repo.replace("KeeperHub/keeperhub", "KeeperHub").replace("KeeperHub/cli", "KeeperHub CLI"))}</span>
         <span class="num">#${esc(pr.number)}</span>
@@ -917,7 +924,7 @@ const html = `<!doctype html>
     <h2>The teardown became upstream work.</h2>
     <p style="margin-top:14px">Every one came from a finding this project proved with a real transaction. Nine findings produced five PRs: some are observations for the teardown rather than a change worth a maintainer's time, one was withdrawn after it turned out to be fixed upstream, and five is a deliberate ceiling rather than a count to optimise.</p>
     <div style="margin-top:26px">${upstreamRows()}</div>
-    <p class="sub" style="margin-top:20px">${esc(up?.prs?.length ?? 0)} contributions, ${up?.merged === 0 ? "all open and none merged" : `${esc(up?.merged)} merged`}. Two carry maintainer reviews requesting changes, since addressed; the rest are awaiting review. Whether any is accepted is KeeperHub's call, not a result this project can claim. States read from GitHub${up?.fetchedAt ? ` at ${esc(String(up.fetchedAt).slice(0, 16).replace("T", " "))} UTC` : ""}${up?.stale ? ", and this block may be stale" : ""}.</p>
+    <p class="sub" style="margin-top:20px">${esc(up?.prs?.length ?? 0)} contributions, ${up?.merged === 0 ? "none merged" : `<strong>${esc(up?.merged)} merged into KeeperHub</strong>`}. The rest carry maintainer reviews and are still open; whether they land is KeeperHub's call, not a result this project can claim. States read from GitHub${up?.fetchedAt ? ` at ${esc(String(up.fetchedAt).slice(0, 16).replace("T", " "))} UTC` : ""}${up?.stale ? ", and this block may be stale" : ""}.</p>
   </div>
 </section>
 

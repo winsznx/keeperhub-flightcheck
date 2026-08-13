@@ -358,8 +358,8 @@ The teardown records both measurements rather than dropping it.
 
 ## Upstream
 
-Five PRs open against KeeperHub, all from findings this project proved with real transactions.
-None is merged, and nothing here depends on them being merged.
+Five PRs against KeeperHub, all from findings this project proved with real transactions.
+**Two are merged.** Nothing here depends on the rest landing.
 
 **KeeperHub/cli**
 
@@ -375,9 +375,9 @@ None is merged, and nothing here depends on them being merged.
 
 **KeeperHub/keeperhub**
 
-- [#2008](https://github.com/KeeperHub/keeperhub/pull/2008) documents the `unconfirmed` execution
+- [#2008](https://github.com/KeeperHub/keeperhub/pull/2008) **merged.** Documents the `unconfirmed` execution
   status, which is live but missing from the Direct Execution status list
-- [#2009](https://github.com/KeeperHub/keeperhub/pull/2009) corrects what the OpenAPI document is
+- [#2009](https://github.com/KeeperHub/keeperhub/pull/2009) **merged.** Corrects what the OpenAPI document is
   described as covering
 - [#2039](https://github.com/KeeperHub/keeperhub/pull/2039) the Turnkey page said funding the EOA
   "is required for any workflow that broadcasts a transaction", contradicting its own sponsorship

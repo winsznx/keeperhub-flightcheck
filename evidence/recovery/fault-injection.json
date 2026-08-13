@@ -1,11 +1,11 @@
 {
   "scenario": "post-submit response loss, recovered by idempotency-key replay",
-  "startedAt": "2026-08-13T09:03:00.059Z",
-  "completedAt": "2026-08-13T09:03:11.357Z",
-  "runId": "fc_11d43280-00c7-4f07-8c84-7ed512a0425d",
-  "challenge": "0x27d76a5942fb297a66bdc7ea7e97a91c32a13cdcd2e6cf97862e173b0b166d49",
-  "idempotencyKey": "b4d7a8d37e4493e9b347c3a9182df62a73f1727ac210d161e7e35b00709eb552",
-  "canonicalRequestBodyHash": "sha256:93453b5a82993665009d30313c8f56e0005ea6d39568510df15788d82285dd1d",
+  "startedAt": "2026-08-13T09:33:23.274Z",
+  "completedAt": "2026-08-13T09:33:35.623Z",
+  "runId": "fc_a9be2ed3-c31d-4e45-a977-eb062b831cca",
+  "challenge": "0xe95cd380344c9609dadcf76db4c7f717048655c17452a7efa730dbed56a5d02d",
+  "idempotencyKey": "022fc410464e0aaa18058bbe2db15ec071123c5b5ca2ef16ee2e356ccec61fc6",
+  "canonicalRequestBodyHash": "sha256:41df94d99cc87d4c4205cd022750f61b8a815fff8cb5d23b79b7b5530394e324",
   "firstInvocation": {
     "outcome": "stopped",
     "failureCode": "FC_EXEC_TRANSPORT_LOST",
@@ -16,32 +16,32 @@
   "recovery": {
     "outcome": "verified",
     "idempotentReplay": true,
-    "executionId": "w7rojxt56kxqok5xacsxu",
-    "transactionHash": "0xea29009fb561509b9b71d85ba5d0f9cf02857e6eaac327e37dc4ffff5a60cabd",
+    "executionId": "zngchsd1wfzaiykfrtb9i",
+    "transactionHash": "0x698b2af8bb6cd10ee95ed0635b974f745fec7ae48b0c808c31f909f4ed4c013f",
     "sponsored": true
   },
   "onchainProof": {
     "method": "eth_getLogs filtered by canary address and the run's unique challenge topic",
     "address": "0x2A6FC8182Bf9928Ef7517dA980dC79e8107c555A",
     "topic0": "0x4947ef22330e8e81cdedf82c33d366e9c942511f5edf79140686b33af9de7f33",
-    "challengeTopic": "0x27d76a5942fb297a66bdc7ea7e97a91c32a13cdcd2e6cf97862e173b0b166d49",
-    "searchedFromBlock": 45421741,
+    "challengeTopic": "0xe95cd380344c9609dadcf76db4c7f717048655c17452a7efa730dbed56a5d02d",
+    "searchedFromBlock": 45422652,
     "matchingLogCount": 1,
     "transactionHashes": [
-      "0xea29009fb561509b9b71d85ba5d0f9cf02857e6eaac327e37dc4ffff5a60cabd"
+      "0x698b2af8bb6cd10ee95ed0635b974f745fec7ae48b0c808c31f909f4ed4c013f"
     ]
   },
   "pass": true,
   "capsule": {
     "schema": "keeperhub-flightcheck/v1",
     "toolVersion": "0.1.0",
-    "runId": "fc_11d43280-00c7-4f07-8c84-7ed512a0425d",
+    "runId": "fc_a9be2ed3-c31d-4e45-a977-eb062b831cca",
     "outcome": "verified",
     "stageReached": "PROOF_WRITTEN",
     "stoppedAt": null,
     "failureCode": null,
-    "createdAt": "2026-08-13T09:03:00.817Z",
-    "completedAt": "2026-08-13T09:03:11.357Z",
+    "createdAt": "2026-08-13T09:33:23.974Z",
+    "completedAt": "2026-08-13T09:33:35.623Z",
     "chain": {
       "chainId": 84532,
       "name": "Base Sepolia",
@@ -61,7 +61,7 @@
       "eventSignature": "Flightcheck(address,bytes32,uint256)",
       "eventTopic0": "0x4947ef22330e8e81cdedf82c33d366e9c942511f5edf79140686b33af9de7f33"
     },
-    "challenge": "0x27d76a5942fb297a66bdc7ea7e97a91c32a13cdcd2e6cf97862e173b0b166d49",
+    "challenge": "0xe95cd380344c9609dadcf76db4c7f717048655c17452a7efa730dbed56a5d02d",
     "idempotency": {
       "key": "<redacted:RAW_64_HEX>",
       "requestBodyHash": "sha256:<redacted:RAW_64_HEX>",
@@ -72,7 +72,7 @@
     },
     "simulation": null,
     "execution": {
-      "id": "w7rojxt56kxqok5xacsxu",
+      "id": "zngchsd1wfzaiykfrtb9i",
       "serverStatus": "completed",
       "normalizedState": "COMPLETED",
       "sponsored": true,
@@ -82,27 +82,27 @@
       "transactionHashInPostBody": false
     },
     "transaction": {
-      "hash": "0xea29009fb561509b9b71d85ba5d0f9cf02857e6eaac327e37dc4ffff5a60cabd",
-      "link": "https://sepolia.basescan.org/tx/0xea29009fb561509b9b71d85ba5d0f9cf02857e6eaac327e37dc4ffff5a60cabd"
+      "hash": "0x698b2af8bb6cd10ee95ed0635b974f745fec7ae48b0c808c31f909f4ed4c013f",
+      "link": "https://sepolia.basescan.org/tx/0x698b2af8bb6cd10ee95ed0635b974f745fec7ae48b0c808c31f909f4ed4c013f"
     },
     "keeperhubReceipt": {
       "verified": true,
       "receiptStatus": "success",
-      "blockNumber": 45421749,
-      "gasUsed": "45865"
+      "blockNumber": 45422661,
+      "gasUsed": "45877"
     },
     "independentVerification": {
       "rpcOrigin": "https://sepolia.base.org",
       "rpcChainId": 84532,
       "receiptStatusHex": "0x1",
-      "blockNumber": 45421749,
+      "blockNumber": 45422661,
       "transactionFrom": "0xdcf4bac4bd805948168ff63483bc493894a29613",
       "transactionTo": "0x5af5194b4b0909eb978e3cf1e25333852277f07d",
       "event": {
         "emitter": "0x2a6fc8182bf9928ef7517da980dc79e8107c555a",
         "topic0": "0x4947ef22330e8e81cdedf82c33d366e9c942511f5edf79140686b33af9de7f33",
         "sender": "0xfd35ae935de7be93ffd585d6627268d833ed834c",
-        "challenge": "0x27d76a5942fb297a66bdc7ea7e97a91c32a13cdcd2e6cf97862e173b0b166d49",
+        "challenge": "0xe95cd380344c9609dadcf76db4c7f717048655c17452a7efa730dbed56a5d02d",
         "chainId": 84532
       },
       "challengeMatches": true,
@@ -121,15 +121,15 @@
       "allLegsAgree": true
     },
     "timingsMs": {
-      "authenticate": 289,
-      "resolveWallet": 290,
-      "resolveChain": 273,
-      "verifyCanary": 1048,
-      "execute": 320,
-      "settle": 282,
-      "verifyReceipt": 283,
+      "authenticate": 296,
+      "resolveWallet": 299,
+      "resolveChain": 302,
+      "verifyCanary": 839,
+      "execute": 307,
+      "settle": 286,
+      "verifyReceipt": 255,
       "verifyEvent": 0,
-      "total": 2785
+      "total": 2584
     }
   }
 }
