@@ -9,18 +9,18 @@ Phase A. Broadcast for real, then lose the response.
       CHAIN_RESOLVED  Base Sepolia (84532)
       CANARY_VERIFIED  0x753157870ee9e692c7e35e0890fad801fd30fc4674a74a62a7526758da649dd0
       SIMULATION_PASSED  gas 23929
-      EXECUTION_PREPARED  055760a79acce15c…
+      EXECUTION_PREPARED  b4d7a8d37e4493e9…
       [fault] broadcast #1 reached KeeperHub and was answered. Discarding the response and failing the client.
       [note] The response was lost and no execution id was ever seen. Replaying the persisted idempotency key to recover the original outcome.
       [fault] broadcast #2 reached KeeperHub and was answered. Discarding the response and failing the client.
 
-  run id            fc_25320695-3e95-4449-968e-06beac8cdd88
+  run id            fc_11d43280-00c7-4f07-8c84-7ed512a0425d
   outcome           stopped
   failure code      FC_EXEC_TRANSPORT_LOST
   execution id seen NONE
   tx hash seen      NONE
-  challenge         0xb2bc8144c86b4e35ee2d132d4d45fce260da16bd53a7c2112a65e6be0bc27357
-  idempotency key   055760a79acce15c45b02186…
+  challenge         0x27d76a5942fb297a66bdc7ea7e97a91c32a13cdcd2e6cf97862e173b0b166d49
+  idempotency key   b4d7a8d37e4493e9b347c3a9…
   broadcasts sent   2
 
   logs onchain for this challenge, before recovery: 1
@@ -31,24 +31,24 @@ Phase A. Broadcast for real, then lose the response.
 
 Phase B. Resume the same run.
 
-      [note] Resuming fc_25320695-3e95-4449-968e-06beac8cdd88. Replaying the persisted request and idempotency key.
+      [note] Resuming fc_11d43280-00c7-4f07-8c84-7ed512a0425d. Replaying the persisted request and idempotency key.
       AUTHENTICATED  scope mcp:read mcp:write mcp:admin
       WALLET_RESOLVED  0xfd35ae935de7be93ffd585d6627268d833ed834c
       CHAIN_RESOLVED  Base Sepolia (84532)
       CANARY_VERIFIED  0x753157870ee9e692c7e35e0890fad801fd30fc4674a74a62a7526758da649dd0
       SIMULATION_PASSED  skipped on resume
-      EXECUTION_PREPARED  055760a79acce15c…
+      EXECUTION_PREPARED  b4d7a8d37e4493e9…
       [note] KeeperHub replayed the stored response for this idempotency key. This outcome already happened; no second transaction was created.
-      EXECUTION_CREATED  w892g16oax5x0m7wkhe7r
-      BROADCAST_OBSERVED  0x01b89a6c343ec67a71f53716e92b6b89906bdbdbb5877685657315a8678ac93d
-      RECEIPT_CONFIRMED  block 45340786
-      EVENT_VERIFIED  0xb2bc8144c86b4e35ee2d132d4d45fce260da16bd53a7c2112a65e6be0bc27357
+      EXECUTION_CREATED  w7rojxt56kxqok5xacsxu
+      BROADCAST_OBSERVED  0xea29009fb561509b9b71d85ba5d0f9cf02857e6eaac327e37dc4ffff5a60cabd
+      RECEIPT_CONFIRMED  block 45421749
+      EVENT_VERIFIED  0x27d76a5942fb297a66bdc7ea7e97a91c32a13cdcd2e6cf97862e173b0b166d49
       PROOF_WRITTEN
 
   outcome           verified
   replayed          true
-  execution id      w892g16oax5x0m7wkhe7r
-  tx hash           0x01b89a6c343ec67a71f53716e92b6b89906bdbdbb5877685657315a8678ac93d
+  execution id      w7rojxt56kxqok5xacsxu
+  tx hash           0xea29009fb561509b9b71d85ba5d0f9cf02857e6eaac327e37dc4ffff5a60cabd
   sponsored         true
 
 Phase C. Count what actually reached the chain.
@@ -56,9 +56,9 @@ Phase C. Count what actually reached the chain.
   eth_getLogs on the canary, filtered to this run's challenge topic
     address  0x2A6FC8182Bf9928Ef7517dA980dC79e8107c555A
     topic0   0x4947ef22330e8e81cdedf82c33d366e9c942511f5edf79140686b33af9de7f33
-    topic2   0xb2bc8144c86b4e35ee2d132d4d45fce260da16bd53a7c2112a65e6be0bc27357
+    topic2   0x27d76a5942fb297a66bdc7ea7e97a91c32a13cdcd2e6cf97862e173b0b166d49
     matches  1
-      0x01b89a6c343ec67a71f53716e92b6b89906bdbdbb5877685657315a8678ac93d
+      0xea29009fb561509b9b71d85ba5d0f9cf02857e6eaac327e37dc4ffff5a60cabd
 
 Result
 ------------------------------------------------------------------------

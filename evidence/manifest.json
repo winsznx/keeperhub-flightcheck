@@ -1,6 +1,6 @@
 {
   "schema": "keeperhub-flightcheck/manifest/v1",
-  "generatedAt": "2026-08-12T13:50:19.453Z",
+  "generatedAt": "2026-08-13T09:04:55.867Z",
   "toolVersion": "0.1.0",
   "proofSchema": "keeperhub-flightcheck/v1",
   "canary": {
@@ -119,7 +119,7 @@
     "broadcastRequestsSent": 2,
     "transactionsOnchain": 1,
     "idempotentReplay": true,
-    "transactionHash": "0x01b89a6c343ec67a71f53716e92b6b89906bdbdbb5877685657315a8678ac93d",
+    "transactionHash": "0xea29009fb561509b9b71d85ba5d0f9cf02857e6eaac327e37dc4ffff5a60cabd",
     "method": "eth_getLogs filtered by canary address and the run's unique challenge topic"
   },
   "benchmark": {
@@ -412,7 +412,7 @@
   },
   "upstream": {
     "fetchedAt": "2026-08-12T13:50:30.601Z",
-    "stale": false,
+    "stale": true,
     "source": "GitHub REST, unauthenticated, at manifest generation time",
     "total": 5,
     "merged": 0,
